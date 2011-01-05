@@ -7,6 +7,11 @@ All rights reserved.
 
 See the file COPYING for complete copyright statement.
 
+
+================
+  Introduction
+================
+
 The YubiKey is a hardware token for authentication. The main
 mode of the YubiKey is entering a one time password (or a strong
 static password) by acting as a USB HID device, but there are
@@ -23,6 +28,11 @@ things one can do with bi-directional communication.
      challenge-response operations.
 
      See examples/nist_challenge_response for an example.
+
+
+================
+    Example
+================
 
 Here is a trivial usage example :
 
@@ -41,5 +51,31 @@ Here is a trivial usage example :
 	print "ERROR: %s" % inst.value
         sys.exit(1)
 
+
+================
+  Installation
+================
+
+You should be able to install python-yubico in the standard-python way,
+which seems to be
+
+  $ cd python-yubico-$ver
+  $ python setup.py install
+
+although I've never tried this myself. I use Ubuntu, so I created a
+PPA (Personal Package Archive) for easy installation (and removal) on
+Ubuntu systems.
+
+If you use a recent Ubuntu release, you should be able to install
+python-yubico with these commands :
+
+  $ sudo add-apt-repository ppa:fredrikt/python-yubico
+  $ sudo apt-get update
+  $ sudo apt-get install python-yubico
+
+The Launchpad PPA key generated for my packages is C7E50642.
+
+
+================
 
 Comments, feedback and patches welcome!
