@@ -221,9 +221,10 @@ class YubiKeyConfig():
         self._set_20_bytes_key(secret)
         if bytes == 8:
             self.config_flag('OATH_HOTP8', True)
-        decoded_mui = self._decode_input_string(mui)
-        fixed = chr(omp) + chr(tt) + decoded_mui
-        self.fixed_string(fixed)
+        if omp or tt or mui:
+            decoded_mui = self._decode_input_string(mui)
+            fixed = chr(omp) + chr(tt) + decoded_mui
+            self.fixed_string(fixed)
         if factor_seed:
             self.uid = self.uid + struct.pack('<H', factor_seed)
 

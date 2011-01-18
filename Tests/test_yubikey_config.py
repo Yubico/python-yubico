@@ -211,7 +211,7 @@ class YubiKeyTests(unittest.TestCase):
 
         self.assertEqual(data, expected)
 
-    def test_oath_hotp_like_windows(self):
+    def test_oath_hotp_like_windows_factory_seed(self):
         """ Test OATH-HOTP factor_seed """
 
         expected = ['\x01\x02\x03\x04\x05\x06\x00\x80',
