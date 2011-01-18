@@ -360,6 +360,7 @@ class YubiKeyUSBHID(YubiKey):
             else:
                 raise
 
+        self._usb_handle.setConfiguration(1)
         self._usb_handle.claimInterface(usb_int)
         return True
 
