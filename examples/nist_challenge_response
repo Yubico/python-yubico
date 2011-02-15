@@ -25,7 +25,7 @@ try:
     print "Serial  : %i" % YK.serial()
     print ""
 except yubico.yubico_exception.YubicoError as inst:
-    print "ERROR: %s" % inst.value
+    print "ERROR: %s" % inst.reason
     sys.exit(1)
 
 # Do challenge-response

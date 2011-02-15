@@ -48,7 +48,7 @@ Here is a trivial usage example :
         YK = yubico.yubikey.find_key(debug=debug)
 	print "Version : %s " % YK.version()
     except yubico.yubico_exception.YubicoError as inst:
-	print "ERROR: %s" % inst.value
+	print "ERROR: %s" % inst.reason
         sys.exit(1)
 
 
