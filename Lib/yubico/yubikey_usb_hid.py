@@ -20,6 +20,7 @@ import yubico_exception
 import yubikey_frame
 import yubikey_config
 import yubikey_defs
+import yubikey
 from yubikey import YubiKey
 import struct
 import time
