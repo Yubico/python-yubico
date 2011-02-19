@@ -50,7 +50,7 @@ class YubiKeyTimeout(YubiKeyError):
     Attributes:
         reason -- explanation of the error
     """
-    def __init__(self, value='no details'):
+    def __init__(self, reason='no details'):
         YubiKeyError.__init__(self, reason)
 
 
