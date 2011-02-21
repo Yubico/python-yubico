@@ -4,7 +4,7 @@ the yubico package
 # Copyright (c) 2010, Yubico AB
 # All rights reserved.
 
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 
 __all__ = ["yubico_exception",
            "yubico_util",
