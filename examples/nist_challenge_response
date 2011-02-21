@@ -24,15 +24,16 @@ try:
     print "Version : %s " % YK.version()
     print "Serial  : %i" % YK.serial()
     print ""
+
+    # Do challenge-response
+    secret = 'Sample #2'.ljust(64, chr(0x0))
+    print "Sending challenge : %s\n" % repr(secret)
+
+    response = YK.challenge_response(secret, slot=2)
 except yubico.yubico_exception.YubicoError as inst:
     print "ERROR: %s" % inst.reason
     sys.exit(1)
 
-# Do challenge-response
-secret = 'Sample #2'.ljust(64, chr(0x0))
-print "Sending challenge : %s\n" % repr(secret)
-
-response = YK.challenge_response(secret, slot=2)
 print "Response :\n%s\n" % yubico.yubico_util.hexdump(response)
 
 # Check if the response matched the expected one
