@@ -26,7 +26,7 @@ from yubico import __version__
 
 class YubicoError(Exception):
     """
-    Base class for Yubico exceptions in this module.
+    Base class for Yubico exceptions in the yubico package.
 
     Attributes:
         reason -- explanation of the error
