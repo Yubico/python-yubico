@@ -56,15 +56,18 @@ Here is a trivial usage example :
   Installation
 ================
 
-You should be able to install python-yubico in the standard-python way,
-which seems to be
+python-yubico is installable in the standard-python way :
 
   $ cd python-yubico-$ver
   $ python setup.py install
 
-although I've never tried this myself. I use Ubuntu, so I created a
-PPA (Personal Package Archive) for easy installation (and removal) on
-Ubuntu systems.
+This requires the python-setuptools (well, the package is called
+that in Debian/Ubuntu). You will also need the Python USB package
+from http://pyusb.berlios.de/ - package called python-usb in
+Debian/Ubuntu.
+
+I use Ubuntu, so I created a PPA (Personal Package Archive) for
+easy installation (and removal) on Ubuntu systems.
 
 If you use a recent Ubuntu release, you should be able to install
 python-yubico with these commands :
