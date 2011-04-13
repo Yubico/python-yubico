@@ -10,7 +10,10 @@ This is a scheme for generating "one time" HMAC-SHA1 challenges, which
 works by being able to access the HMAC-SHA1 key on the host computer every
 time the correct response is provided.
 
-GPGME is used to encrypt the HMAC-SHA1 with the next expected response.
+GPGME would've been used to encrypt the HMAC-SHA1 with the next expected
+response, but none of the two Python bindings to gpgme I have available
+at the moment supports symmetric encryption, so for demo purposes AES CBC
+is used instead.
 """
 
 import os
