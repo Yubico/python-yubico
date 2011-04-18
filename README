@@ -40,12 +40,12 @@ Here is a trivial usage example :
     """ Get version of connected YubiKey. """
 
     import sys
-    import yubico.yubikey
+    import yubico
 
     debug = False
 
     try:
-        YK = yubico.yubikey.find_key(debug=debug)
+        YK = yubico.find_yubikey(debug=debug)
 	print "Version : %s " % YK.version()
     except yubico.yubico_exception.YubicoError as inst:
 	print "ERROR: %s" % inst.reason

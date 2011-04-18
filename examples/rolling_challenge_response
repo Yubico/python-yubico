@@ -19,16 +19,18 @@ is used instead.
 import os
 import sys
 import json
-import argparse
-import yubico.yubikey
-
-import hashlib
 import hmac
+import argparse
+import hashlib
+
+import yubico
 
 from Crypto.Cipher import AES
 
 def parse_args():
-    """                                                                                                                                                                                                                                         Parse the command line arguments                                                                                                                                                                                                            """
+    """
+    Parse the command line arguments
+    """
     parser = argparse.ArgumentParser(description = "Demonstrate rolling challenges",
                                      add_help=True
                                      )
@@ -124,7 +126,7 @@ def get_yubikey_response(args, challenge):
     """
     Do challenge-response with the YubiKey if one is found. Otherwise prompt user to fake a response. """
     try:
-        YK = yubico.yubikey.find_key(debug = args.debug)
+        YK = yubico.find_yubikey(debug = args.debug)
         response = YK.challenge_response(challenge.ljust(64, chr(0x0)), slot = args.slot)
         return response
     except yubico.yubico_exception.YubicoError as e:

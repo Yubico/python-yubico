@@ -4,10 +4,8 @@ Test challenge-response, assumes a NIST PUB 198 A.2
 20 bytes test vector in Slot 2 (variable input)
 """
 
-import yubico.yubikey
-import yubico.yubico_util
-import yubico.yubico_exception
 import sys
+import yubico
 
 expected = \
     '\x09\x22\xd3\x40\x5f\xaa\x3d\x19\x4f\x82' + \
@@ -20,7 +18,7 @@ if len(sys.argv) > 1:
 
 # Look for and initialize the YubiKey
 try:
-    YK = yubico.yubikey.find_key(debug=debug)
+    YK = yubico.find_yubikey(debug=debug)
     print "Version : %s " % YK.version()
     print "Serial  : %i" % YK.serial()
     print ""

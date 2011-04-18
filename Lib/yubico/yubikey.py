@@ -3,9 +3,10 @@ module for accessing a YubiKey
 
 In an attempt to support any future versions of the YubiKey which
 might not be USB HID devices, you should always use the yubikey.find_key()
-function to initialize communication with YubiKeys.
+(or better yet, yubico.find_yubikey()) function to initialize
+communication with YubiKeys.
 
-Example usage :
+Example usage (if using this module directly, see base module yubico) :
 
     import yubico.yubikey
 
@@ -15,7 +16,7 @@ Example usage :
     except yubico.yubico_exception.YubicoError as inst:
         print "ERROR: %s" % inst.reason
 """
-# Copyright (c) 2010, Yubico AB
+# Copyright (c) 2010, 2011 Yubico AB
 # All rights reserved.
 
 __all__ = [

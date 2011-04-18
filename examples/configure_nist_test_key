@@ -4,15 +4,14 @@ Set up a YubiKey with a NIST PUB 198 A.2
 20 bytes test vector in Slot 2 (variable input)
 """
 
-import yubico
-import yubico.yubikey
-import struct
 import sys
+import struct
+import yubico
 
 slot=2
 
 try:
-    YK = yubico.yubikey.find_key(debug=True)
+    YK = yubico.find_yubikey(debug=True)
     print "Version : %s " % YK.version()
 
     Cfg = YK.init_config()
