@@ -20,7 +20,7 @@ yubikey_config module.
 # Copyright (c) 2010, 2011 Yubico AB
 # All rights reserved.
 
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 
 __all__ = [
     # classes
