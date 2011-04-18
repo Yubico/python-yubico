@@ -208,18 +208,18 @@ class YubiKeyConfig():
         else:
             raise yubico_exception.InputError('Access key must be exactly 6 bytes')
 
-    def mode_oath_hotp(self, secret, bytes=6, factor_seed=None, omp=0x0, tt=0x0, mui=''):
+    def mode_oath_hotp(self, secret, digits=6, factor_seed=None, omp=0x0, tt=0x0, mui=''):
         """
         Set the YubiKey up for OATH-HOTP operation.
 
         Requires YubiKey 2.1.
         """
-        if bytes != 6 and bytes != 8:
-            raise InputError('OATH-HOTP bytes must be 6 or 8')
+        if digits != 6 and digits != 8:
+            raise InputError('OATH-HOTP digits must be 6 or 8')
 
         self._change_mode('OATH_HOTP', major=2, minor=1)
         self._set_20_bytes_key(secret)
-        if bytes == 8:
+        if digits == 8:
             self.config_flag('OATH_HOTP8', True)
         if omp or tt or mui:
             decoded_mui = self._decode_input_string(mui)

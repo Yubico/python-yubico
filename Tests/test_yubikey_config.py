@@ -201,7 +201,7 @@ class YubiKeyTests(unittest.TestCase):
 
         Config = self.Config
         secret = 'h:303132333435363738393a3b3c3d3e3f40414243'
-        Config.mode_oath_hotp(secret, bytes=8, factor_seed='', omp=0x01, tt=0x02, mui='\x03\x04\x05\x06')
+        Config.mode_oath_hotp(secret, digits=8, factor_seed='', omp=0x01, tt=0x02, mui='\x03\x04\x05\x06')
         Config.config_flag('OATH_FIXED_MODHEX2', True)
 
         data = Config.to_frame(slot=2).to_feature_reports()
@@ -226,7 +226,7 @@ class YubiKeyTests(unittest.TestCase):
 
         Config = self.Config
         secret = 'h:303132333435363738393a3b3c3d3e3f40414243'
-        Config.mode_oath_hotp(secret, bytes=8, factor_seed=0x2101, omp=0x01, tt=0x02, mui='\x03\x04\x05\x06')
+        Config.mode_oath_hotp(secret, digits=8, factor_seed=0x2101, omp=0x01, tt=0x02, mui='\x03\x04\x05\x06')
         Config.config_flag('OATH_FIXED_MODHEX2', True)
 
         data = Config.to_frame(slot=2).to_feature_reports()
