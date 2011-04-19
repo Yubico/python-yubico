@@ -75,7 +75,7 @@ class YubiKey():
         """ Get the connected YubiKey's serial number. """
         pass
 
-    def challenge(self, challenge, mode='HMAC', slot=1):
+    def challenge(self, challenge, mode='HMAC', slot=1, variable=True):
         """ Get the response to a challenge from a connected YubiKey's. """
         pass
 

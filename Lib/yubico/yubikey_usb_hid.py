@@ -140,11 +140,11 @@ class YubiKeyUSBHID(YubiKey):
             raise YubiKeyUSBHIDError("Serial number unsupported in YubiKey %s" % self.version() )
         return self._read_serial()
 
-    def challenge_response(self, challenge, mode='HMAC', slot=1):
+    def challenge_response(self, challenge, mode='HMAC', slot=1, variable=True):
         """ Issue a challenge to the YubiKey and return the response (requires YubiKey 2). """
         if self.version_num() < (2, 0, 0):
             raise YubiKeyUSBHIDError("Challenge response unsupported in YubiKey %s" % self.version() )
-        return self._challenge_response(challenge, mode, slot)
+        return self._challenge_response(challenge, mode, slot, variable)
 
     def init_config(self):
         """ Get a configuration object for this type of YubiKey. """
@@ -170,12 +170,18 @@ class YubiKeyUSBHID(YubiKey):
         serial = struct.unpack('>lxxx', response)
         return serial[0]
 
-    def _challenge_response(self, challenge, mode, slot):
+    def _challenge_response(self, challenge, mode, slot, variable):
         """ Do challenge-response with a YubiKey > 2.0. """
         try:
             command = _CMD_CHALLENGE[mode][slot]
         except:
             raise YubiKeyUSBHIDError('Invalid slot (%s) or mode (%s) specified' % (slot, mode))
+
+        if len(challenge) < yubikey_defs.SHA1_MAX_BLOCK_SIZE:
+            pad_with = chr(0x0)
+            if variable and challenge[-1] == pad_with:
+                pad_with = chr(0xff)
+            challenge = challenge.ljust(yubikey_defs.SHA1_MAX_BLOCK_SIZE, pad_with)
 
         frame = yubikey_frame.YubiKeyFrame(command=command, payload=challenge)
         self._write(frame)
