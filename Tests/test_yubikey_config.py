@@ -290,8 +290,8 @@ class YubiKeyTests(unittest.TestCase):
         """ Test YubiKey 2.2 with v2.2 mode """
 
         Config = YubiKeyConfigUSBHID(ykver=(2, 2))
-        secret = 'h:303132333435363738393a3b3c3d3e3f40414243'
-        Config.mode_challenge_response(secret, type='yubico')
+        secret = 'h:303132333435363738393a3b3c3d3e3f'
+        Config.mode_challenge_response(secret, type='OTP')
         self.assertEqual('CHAL_RESP', Config._mode)
 
 if __name__ == '__main__':
