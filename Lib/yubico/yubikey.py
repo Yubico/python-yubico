@@ -78,8 +78,8 @@ class YubiKey():
         Note that since version 2.?.? this requires the YubiKey to be
         configured with the extended flag SERIAL_API_VISIBLE.
 
-        If the YubiKey is configured with CHAL_BTN_TRIG set to True, it
-        will start blinking and require a button press before revealing
+        If the YubiKey is configured with SERIAL_BTN_VISIBLE set to True,
+        it will start blinking and require a button press before revealing
         the serial number, with a 15 seconds timeout. Set `may_block'
         to False to abort if this is the case.
         """
@@ -100,6 +100,14 @@ class YubiKey():
 
         The special case of no input will be HMACed by the YubiKey
         (in variable HMAC mode) as data = 0x00, length = 1.
+
+        In mode 'OTP', the challenge should be exactly 6 bytes. The
+        response will be a YubiKey "ticket" with the 6-byte challenge
+        in the ticket.uid field. The rest of the "ticket" will contain
+        timestamp and counter information, so two identical challenges
+        will NOT result in the same responses. The response is
+        decryptable using AES ECB if you have access to the AES key
+        programmed into the YubiKey.
         """
         pass
 

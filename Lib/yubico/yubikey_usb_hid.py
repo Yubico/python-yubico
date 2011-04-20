@@ -134,7 +134,7 @@ class YubiKeyUSBHID(YubiKey):
         version = "%d.%d.%d" % (self.ykver)
         return version
 
-    def serial(self, may_block):
+    def serial(self, may_block=True):
         """ Get the YubiKey serial number (requires YubiKey 2). """
         if self.version_num() < (2, 0, 0):
             raise YubiKeyUSBHIDError("Serial number unsupported in YubiKey %s" % self.version() )
