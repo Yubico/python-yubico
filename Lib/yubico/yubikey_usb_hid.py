@@ -172,23 +172,38 @@ class YubiKeyUSBHID(YubiKey):
 
     def _challenge_response(self, challenge, mode, slot, variable):
         """ Do challenge-response with a YubiKey > 2.0. """
+         # Check length and pad challenge if appropriate
+        if mode == 'HMAC':
+            if len(challenge) > yubikey_defs.SHA1_MAX_BLOCK_SIZE:
+                raise yubico_exception.InputError('Mode HMAC challenge too big (%i/%i)' \
+                                                      % (yubikey_defs.SHA1_MAX_BLOCK_SIZE, len(challenge)))
+            if len(challenge) < yubikey_defs.SHA1_MAX_BLOCK_SIZE:
+                pad_with = chr(0x0)
+                if variable and challenge[-1] == pad_with:
+                    pad_with = chr(0xff)
+                challenge = challenge.ljust(yubikey_defs.SHA1_MAX_BLOCK_SIZE, pad_with)
+            response_len = yubikey_defs.SHA1_DIGEST_SIZE
+        elif mode == 'OTP':
+            if len(challenge) != yubikey_defs.UID_SIZE:
+                raise yubico_exception.InputError('Mode OTP challenge must be %i bytes (got %i)' \
+                                                      % (yubikey_defs.UID_SIZE, len(challenge)))
+            challenge = challenge.ljust(yubikey_defs.SHA1_MAX_BLOCK_SIZE, chr(0x0))
+            response_len = 16
+        else:
+            raise yubico_exception.InputError('Invalid mode supplied (%s, valid values are HMAC and OTP)' \
+                                                  % (mode))
+
         try:
             command = _CMD_CHALLENGE[mode][slot]
         except:
-            raise YubiKeyUSBHIDError('Invalid slot (%s) or mode (%s) specified' % (slot, mode))
-
-        if len(challenge) < yubikey_defs.SHA1_MAX_BLOCK_SIZE:
-            pad_with = chr(0x0)
-            if variable and challenge[-1] == pad_with:
-                pad_with = chr(0xff)
-            challenge = challenge.ljust(yubikey_defs.SHA1_MAX_BLOCK_SIZE, pad_with)
+            raise yubico_exception.InputError('Invalid slot specified (%s)' % (slot))
 
         frame = yubikey_frame.YubiKeyFrame(command=command, payload=challenge)
         self._write(frame)
         response = self._read_response(may_block=True)
-        if not yubico_util.validate_crc16(response[:22]):
+        if not yubico_util.validate_crc16(response[:response_len + 2]):
             raise YubiKeyUSBHIDError("Read from device failed CRC check")
-        return response[:20]
+        return response[:response_len]
 
     def _write_config(self, cfg, slot):
         """ Write configuration to YubiKey. """

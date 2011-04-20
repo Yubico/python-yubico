@@ -11,6 +11,9 @@ __all__ = [
     'RESP_PENDING_FLAG',
     'SLOT_WRITE_FLAG',
     'SHA1_MAX_BLOCK_SIZE',
+    'SHA1_DIGEST_SIZE',
+    'OTP_CHALRESP_SIZE',
+    'UID_SIZE',
     # functions
     # classes
 ]
@@ -24,3 +27,7 @@ RESP_PENDING_FLAG	= 0x40 # Response pending flag
 SLOT_WRITE_FLAG		= 0x80 # Write flag - set by app - cleared by device
 
 SHA1_MAX_BLOCK_SIZE	= 64   # Max size of input SHA1 block
+SHA1_DIGEST_SIZE	= 20   # Size of SHA1 digest = 160 bits
+OTP_CHALRESP_SIZE	= 16   # Number of bytes returned for an Yubico-OTP challenge (not from ykdef.h)
+
+UID_SIZE		= 6    # Size of secret ID field
