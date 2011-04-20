@@ -2,7 +2,7 @@
 module for accessing a USB HID YubiKey
 """
 
-# Copyright (c) 2010, Yubico AB
+# Copyright (c) 2010, 2011, Yubico AB
 # All rights reserved.
 
 __all__ = [
@@ -131,20 +131,20 @@ class YubiKeyUSBHID(YubiKey):
 
     def version(self):
         """ Get the YubiKey version. """
-        version = "%d.%d.%d" %  self.ykver
+        version = "%d.%d.%d" % (self.ykver)
         return version
 
-    def serial(self):
+    def serial(self, may_block):
         """ Get the YubiKey serial number (requires YubiKey 2). """
         if self.version_num() < (2, 0, 0):
             raise YubiKeyUSBHIDError("Serial number unsupported in YubiKey %s" % self.version() )
-        return self._read_serial()
+        return self._read_serial(may_block)
 
-    def challenge_response(self, challenge, mode='HMAC', slot=1, variable=True):
+    def challenge_response(self, challenge, mode='HMAC', slot=1, variable=True, may_block=True):
         """ Issue a challenge to the YubiKey and return the response (requires YubiKey 2). """
         if self.version_num() < (2, 0, 0):
             raise YubiKeyUSBHIDError("Challenge response unsupported in YubiKey %s" % self.version() )
-        return self._challenge_response(challenge, mode, slot, variable)
+        return self._challenge_response(challenge, mode, slot, variable, may_block)
 
     def init_config(self):
         """ Get a configuration object for this type of YubiKey. """
@@ -158,19 +158,19 @@ class YubiKeyUSBHID(YubiKey):
                                          (cfg_major, cfg_minor, self.version()))
         return self._write_config(cfg, slot)
 
-    def _read_serial(self):
+    def _read_serial(self, may_block):
         """ Read the serial number from a YubiKey > 2.0. """
 
         frame = yubikey_frame.YubiKeyFrame(command = _SLOT_DEVICE_SERIAL)
         self._write(frame)
-        response = self._read_response()
+        response = self._read_response(may_block=may_block)
         if not yubico_util.validate_crc16(response[:6]):
             raise YubiKeyUSBHIDError("Read from device failed CRC check")
         # the serial number is big-endian, although everything else is little-endian
         serial = struct.unpack('>lxxx', response)
         return serial[0]
 
-    def _challenge_response(self, challenge, mode, slot, variable):
+    def _challenge_response(self, challenge, mode, slot, variable, may_block):
         """ Do challenge-response with a YubiKey > 2.0. """
          # Check length and pad challenge if appropriate
         if mode == 'HMAC':
@@ -200,7 +200,7 @@ class YubiKeyUSBHID(YubiKey):
 
         frame = yubikey_frame.YubiKeyFrame(command=command, payload=challenge)
         self._write(frame)
-        response = self._read_response(may_block=True)
+        response = self._read_response(may_block=may_block)
         if not yubico_util.validate_crc16(response[:response_len + 2]):
             raise YubiKeyUSBHIDError("Read from device failed CRC check")
         return response[:response_len]

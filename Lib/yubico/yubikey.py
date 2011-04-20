@@ -71,12 +71,36 @@ class YubiKey():
         """ Get the connected YubiKey's version as a string. """
         pass
 
-    def serial(self):
-        """ Get the connected YubiKey's serial number. """
+    def serial(self, may_block=True):
+        """
+        Get the connected YubiKey's serial number.
+
+        Note that since version 2.?.? this requires the YubiKey to be
+        configured with the extended flag SERIAL_API_VISIBLE.
+
+        If the YubiKey is configured with CHAL_BTN_TRIG set to True, it
+        will start blinking and require a button press before revealing
+        the serial number, with a 15 seconds timeout. Set `may_block'
+        to False to abort if this is the case.
+        """
         pass
 
-    def challenge(self, challenge, mode='HMAC', slot=1, variable=True):
-        """ Get the response to a challenge from a connected YubiKey's. """
+    def challenge(self, challenge, mode='HMAC', slot=1, variable=True, may_block=True):
+        """
+        Get the response to a challenge from a connected YubiKey.
+
+        `mode' is either 'HMAC' or 'OTP'.
+        `slot' is 1 or 2.
+        `variable' is only relevant for mode == HMAC.
+
+        If variable is True, challenge will be padded such that the
+        YubiKey will compute the HMAC as if there were no padding.
+        If variable is False, challenge will always be NULL-padded
+        to 64 bytes.
+
+        The special case of no input will be HMACed by the YubiKey
+        (in variable HMAC mode) as data = 0x00, length = 1.
+        """
         pass
 
     def init_config(self):
