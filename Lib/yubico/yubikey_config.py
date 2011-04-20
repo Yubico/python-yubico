@@ -232,9 +232,12 @@ class YubiKeyConfig():
         """
         Set the YubiKey up for challenge-response operation.
 
-        type can be 'HMAC' or 'Yubico'.
+        `type' can be 'HMAC' or 'OTP'.
 
-        variable is only applicable to type 'HMAC'.
+        `variable' is only applicable to type 'HMAC'.
+
+        For type HMAC, `secret' is expected to be 20 bytes (160 bits).
+        For type OTP, `secret' is expected to be 16 bytes (128 bits).
 
         Requires YubiKey 2.2.
         """
@@ -242,12 +245,13 @@ class YubiKeyConfig():
         if type.upper() == 'HMAC':
             self.config_flag('CHAL_HMAC', True)
             self.config_flag('HMAC_LT64', variable)
-        elif type.lower() == 'yubico':
+            self._set_20_bytes_key(secret)
+        elif type.upper() == 'OTP':
             self.config_flag('CHAL_YUBICO', True)
+            self.aes_key(secret)
         else:
             raise yubico_exception.InputError('Invalid \'type\' (%s)' % type)
         self.config_flag('CHAL_BTN_TRIG', require_button)
-        self._set_20_bytes_key(secret)
 
     def ticket_flag(self, which, new=None):
         """
