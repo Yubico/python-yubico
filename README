@@ -72,7 +72,7 @@ easy installation (and removal) on Ubuntu systems.
 If you use a recent Ubuntu release, you should be able to install
 python-yubico with these commands :
 
-  $ sudo add-apt-repository ppa:fredrikt/python-yubico
+  $ sudo add-apt-repository ppa:fredrikt/yubico
   $ sudo apt-get update
   $ sudo apt-get install python-yubico
 
