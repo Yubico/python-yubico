@@ -17,6 +17,7 @@ from yubico import __version__
 import struct
 import binascii
 import yubico_util
+import yubikey_defs
 import yubikey_frame
 import yubico_exception
 import yubikey_config_util
@@ -207,6 +208,17 @@ class YubiKeyConfig():
             self.access_code = new
         else:
             raise yubico_exception.InputError('Access key must be exactly 6 bytes')
+
+    def mode_yubikey_otp(self, private_uid, aes_key):
+        """
+        Set the YubiKey up for standard OTP validation.
+        """
+        if len(private_uid) != yubikey_defs.UID_SIZE:
+            raise InputError('Private UID must be %i bytes' % (yubikey_defs.UID_SIZE))
+
+        self._change_mode('YUBIKEY_OTP', major=0, minor=9)
+        self.uid = private_uid
+        self.aes_key(aes_key)
 
     def mode_oath_hotp(self, secret, digits=6, factor_seed=None, omp=0x0, tt=0x0, mui=''):
         """
@@ -402,7 +414,8 @@ class YubiKeyConfig():
         self.ticket_flags = YubiKeyConfigBits(0x0)
         self.config_flags = YubiKeyConfigBits(0x0)
         self.extended_flags = YubiKeyConfigBits(0x0)
-        self.ticket_flag(mode, True)
+        if mode != 'YUBIKEY_OTP':
+            self.ticket_flag(mode, True)
 
     def _set_20_bytes_key(self, data):
         """
