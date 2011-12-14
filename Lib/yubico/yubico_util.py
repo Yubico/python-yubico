@@ -11,6 +11,7 @@ __all__ = [
     'validate_crc16',
     'hexdump',
     'modhex_decode',
+    'hotp_truncate',
     # classes
 ]
 
@@ -106,3 +107,14 @@ def modhex_decode(data):
     """ Convert a modhex string to ordinary hex. """
     t_map = string.maketrans("cbdefghijklnrtuv", "0123456789abcdef")
     return data.translate(t_map)
+
+def hotp_truncate(hmac_result, length=6):
+    """ Perform the HOTP Algorithm truncating. """
+    if len(hmac_result) != 20:
+        raise yubico_exception.YubicoError("HMAC-SHA-1 not 20 bytes long")
+    offset   =  ord(hmac_result[19]) & 0xf
+    bin_code = (ord(hmac_result[offset]) & 0x7f) << 24 \
+        | (ord(hmac_result[offset+1]) & 0xff) << 16 \
+        | (ord(hmac_result[offset+2]) & 0xff) <<  8 \
+        | (ord(hmac_result[offset+3]) & 0xff)
+    return bin_code % (10 ** length)
