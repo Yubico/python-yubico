@@ -20,7 +20,7 @@ yubikey_config module.
 # Copyright (c) 2010, 2011 Yubico AB
 # See the file COPYING for licence statement.
 
-__version__ = '0.0.5'
+__version__ = '1.0.0'
 
 __all__ = [
     # classes
