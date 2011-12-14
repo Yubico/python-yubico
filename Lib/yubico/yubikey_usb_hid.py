@@ -3,7 +3,7 @@ module for accessing a USB HID YubiKey
 """
 
 # Copyright (c) 2010, 2011, Yubico AB
-# All rights reserved.
+# See the file COPYING for licence statement.
 
 __all__ = [
   # constants

@@ -2,7 +2,7 @@
 module for creating frames of data that can be sent to a YubiKey
 """
 # Copyright (c) 2010, Yubico AB
-# All rights reserved.
+# See the file COPYING for licence statement.
 
 __all__ = [
     # constants

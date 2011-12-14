@@ -18,7 +18,7 @@ To learn about configuring your YubiKey using this framework, see the
 yubikey_config module.
 """
 # Copyright (c) 2010, 2011 Yubico AB
-# All rights reserved.
+# See the file COPYING for licence statement.
 
 __version__ = '0.0.5'
 

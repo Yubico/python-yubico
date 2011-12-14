@@ -3,9 +3,7 @@ Python package for talking to YubiKeys.
 Author : Fredrik Thulin <fredrik@yubico.com>
 
 Copyright (c) 2011, Yubico AB
-All rights reserved.
-
-See the file COPYING for complete copyright statement.
+See the file COPYING for licence statement.
 
 
 ================

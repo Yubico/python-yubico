@@ -2,7 +2,7 @@
 Module with constants. Many of them from ykdefs.h.
 """
 # Copyright (c) 2010, 2011 Yubico AB
-# All rights reserved.
+# See the file COPYING for licence statement.
 
 __all__ = [
     # constants
