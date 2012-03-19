@@ -17,7 +17,7 @@ Example usage :
 To learn about configuring your YubiKey using this framework, see the
 yubikey_config module.
 """
-# Copyright (c) 2010, 2011 Yubico AB
+# Copyright (c) 2010, 2011, 2012 Yubico AB
 # See the file COPYING for licence statement.
 
 __version__ = '1.0.0'
@@ -36,6 +36,7 @@ __all__ = [
     "yubikey_defs",
     "yubikey_frame",
     "yubikey_usb_hid",
+    "yubikey_neo_usb_hid",
     ]
 
 # to not have to import yubico.yubikey
