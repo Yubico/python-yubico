@@ -94,14 +94,30 @@ class YubiKeyNEO_NDEF():
     """
 
     ndef_type = _NDEF_URI_TYPE
-    ndef_uri_rt = 0x0  # No prepending
     ndef_str = None
     access_code = chr(0x0) * _ACC_CODE_SIZE
+    # For _NDEF_URI_TYPE
+    ndef_uri_rt = 0x0  # No prepending
+    # For _NDEF_TEXT_TYPE
+    ndef_text_lang = 'en'
+    ndef_text_enc = 'UTF-8'
 
     def __init__(self, data, access_code = None):
         self.ndef_str = data
         if access_code is not None:
             self.access_code = access_code
+
+    def text(self, encoding = 'UTF-8', language = 'en'):
+        """
+        Configure parameters for NDEF type TEXT.
+
+        @param encoding: The encoding used. Should be either 'UTF-8' or 'UTF16'.
+        @param language: ISO/IANA language code (see RFC 3066).
+        """
+        self.ndef_type = _NDEF_TEXT_TYPE
+        self.ndef_text_lang = language
+        self.ndef_text_enc = encoding
+        return self
 
     def type(self, url = False, text = False, other = None):
         """
@@ -115,6 +131,7 @@ class YubiKeyNEO_NDEF():
             self.ndef_type = other
         else:
             raise YubiKeyNEO_USBHIDError("Bad or conflicting NDEF type specified")
+        return self
 
     def to_string(self):
         """
@@ -123,6 +140,8 @@ class YubiKeyNEO_NDEF():
         data = self.ndef_str
         if self.ndef_type == _NDEF_URI_TYPE:
             data = self._encode_ndef_uri_type(data)
+        elif self.ndef_type == _NDEF_TEXT_TYPE:
+            data = self._encode_ndef_text_params(data)
         if len(data) > _NDEF_DATA_SIZE:
             raise YubiKeyNEO_USBHIDError("NDEF payload too long")
         # typedef struct {
@@ -166,3 +185,13 @@ class YubiKeyNEO_NDEF():
                 break
         data = chr(t) + data
         return data
+
+    def _encode_ndef_text_params(self, data):
+        """
+        Prepend language and enconding information to data, according to
+        nfcforum-ts-rtd-text-1-0.pdf
+        """
+        status = len(self.ndef_text_lang)
+        if self.ndef_text_enc == 'UTF16':
+            status = status & 0b10000000
+        return chr(status) + self.ndef_text_lang + data
