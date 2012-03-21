@@ -2,7 +2,7 @@
 module for accessing a USB HID YubiKey
 """
 
-# Copyright (c) 2010, 2011, Yubico AB
+# Copyright (c) 2010, 2011, 2012 Yubico AB
 # See the file COPYING for licence statement.
 
 __all__ = [
@@ -70,9 +70,11 @@ class YubiKeyUSBHID(YubiKey):
     Tested with YubiKey versions 1.3 and 2.2.
     """
 
+    configuration_slots = [1, 2]
+
     def __init__(self, debug=False, skip=0):
         """
-        Find and connect to a USB HIB YubiKey.
+        Find and connect to a USB HID YubiKey.
 
         Attributes :
             skip  -- number of YubiKeys to skip
@@ -156,6 +158,8 @@ class YubiKeyUSBHID(YubiKey):
         if cfg_req_ver > self.version_num():
             raise YubiKeyUSBHIDError('Configuration requires YubiKey version %i.%i (this is %s)' % \
                                          (cfg_major, cfg_minor, self.version()))
+        if slot not in self.configuration_slots:
+            raise YubiKeyUSBHIDError("Can't write configuration to slot %i" % (slot))
         return self._write_config(cfg, slot)
 
     def _read_serial(self, may_block):
