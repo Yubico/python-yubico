@@ -254,7 +254,7 @@ class YubiKeyUSBHID(YubiKey):
                                  % (_FEATURE_RPT_SIZE, recv))
             raise YubiKeyUSBHIDError('Failed reading from USB HID YubiKey')
         data = ''.join(chr(c) for c in recv)
-        self._debug("YubiKey USB HID: READ  : %s" % yubico_util.hexdump(data, colorize=True))
+        self._debug("READ  : %s" % (yubico_util.hexdump(data, colorize=True)))
         return data
 
     def _write(self, frame):
@@ -282,7 +282,7 @@ class YubiKeyUSBHID(YubiKey):
         """
         Write data to YubiKey.
         """
-        self._debug("YubiKey USB HID: WRITE : %s" % yubico_util.hexdump(data, colorize=True))
+        self._debug("WRITE : %s" % (yubico_util.hexdump(data, colorize=True)))
         request_type = _USB_TYPE_CLASS | _USB_RECIP_INTERFACE | _USB_ENDPOINT_OUT
         value = _REPORT_TYPE_FEATURE << 8	# apparently required for YubiKey 1.3.2, but not 2.2.x
         sent = self._usb_handle.controlMsg(request_type,
@@ -332,8 +332,8 @@ class YubiKeyUSBHID(YubiKey):
                 if not resp_timeout:
                     resp_timeout = True
                     seconds_left = flags & yubikey_defs.RESP_TIMEOUT_WAIT_MASK
-                    self._debug("YubiKey USB HID: Device indicates RESP_TIMEOUT (%i seconds left)\n"
-                                % (seconds_left))
+                    self._debug("Device indicates RESP_TIMEOUT (%i seconds left)\n" \
+                                    % (seconds_left))
                     if may_block:
                         # calculate new wait_num - never more than 20 seconds
                         seconds_left = min(20, seconds_left)
@@ -343,13 +343,13 @@ class YubiKeyUSBHID(YubiKey):
                 if not flags & mask == mask:
                     finished = True
                 else:
-                    self._debug("YubiKey USB HID: Status %s (0x%x) fails NAND %s (0x%x)\n"
+                    self._debug("Status %s (0x%x) fails NAND %s (0x%x)\n"
                                 % (bin(flags), flags, bin(mask), mask))
             elif mode is 'and':
                 if flags & mask == mask:
                     finished = True
                 else:
-                    self._debug("YubiKey USB HID: Status %s (0x%x) fails AND %s (0x%x)\n"
+                    self._debug("Status %s (0x%x) fails AND %s (0x%x)\n"
                                 % (bin(flags), flags, bin(mask), mask))
             else:
                 assert()
@@ -408,7 +408,12 @@ class YubiKeyUSBHID(YubiKey):
         """ Perform HID cleanup """
         self._usb_handle.releaseInterface()
 
-    def _debug(self, out):
+    def _debug(self, out, print_prefix=True):
         """ Print out to stderr, if debugging is enabled. """
         if self.debug:
+            if print_prefix:
+                pre = self.__class__.__name__
+                if hasattr(self, 'debug_prefix'):
+                    pre = self.debug_prefix
+                sys.stderr.write("%s: " % (self.__class__.__name__))
             sys.stderr.write(out)
