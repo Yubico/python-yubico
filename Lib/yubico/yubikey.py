@@ -127,6 +127,7 @@ class YubiKey():
 # the import must be after the declaration of YubiKey. We also carefully
 # import only what we need to not get a circular import of modules.
 from yubikey_usb_hid import YubiKeyUSBHID, YubiKeyUSBHIDError
+from yubikey_neo_usb_hid import YubiKeyNEO_USBHID, YubiKeyNEO_USBHIDError
 
 def find_key(debug=False, skip=0):
     """
@@ -140,7 +141,16 @@ def find_key(debug=False, skip=0):
         debug -- True or False
     """
     try:
-        return YubiKeyUSBHID(debug=debug, skip=skip)
+        YK = YubiKeyUSBHID(debug=debug, skip=skip)
+        if (YK.version_num() >= (2, 1, 4,)) and \
+                (YK.version_num() <= (2, 1, 9,)):
+            # YubiKey NEO BETA, re-detect
+            YK2 = YubiKeyNEO_USBHID(debug=debug, skip=skip)
+            if YK2.version_num() == YK.version_num():
+                # XXX not guaranteed to be the same one I guess
+                return YK2
+            raise YubiKeyError('Found YubiKey NEO BETA, but failed on rescan.')
+        return YK
     except YubiKeyUSBHIDError as inst:
         if 'No USB YubiKey found' in str(inst):
             # generalize this error
