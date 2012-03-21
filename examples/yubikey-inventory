@@ -3,6 +3,7 @@
 Example of how to access more than one connected YubiKey.
 """
 
+import sys
 import yubico
 
 def get_all_yubikeys(debug):
@@ -22,6 +23,8 @@ def get_all_yubikeys(debug):
         return res
 
 debug = False
+if len(sys.argv) > 1:
+    debug = (sys.argv[1] == '-v')
 keys = get_all_yubikeys(debug)
 
 if not keys:
