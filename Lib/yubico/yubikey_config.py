@@ -83,7 +83,7 @@ class YubiKeyConfigError(yubico_exception.YubicoError):
 
 class YubiKeyConfig():
     """
-    Base class for configuration of all types of YubiKeys.
+    Base class for configuration of all current types of YubiKeys.
     """
 
     def __init__(self, ykver = None, capabilities = None):
@@ -300,10 +300,11 @@ class YubiKeyConfig():
         """
         flag = _get_flag(which, TicketFlags)
         if flag:
-            req_major, req_minor = flag.req_version()
             if not self.capabilities.have_ticket_flag(flag):
-                raise yubikey.YubiKeyVersionError('Ticket flag %s requires YubiKey %d.%d, and this is %d.%d'
-                                                  % (which, req_major, req_minor, self.ykver[0], self.ykver[1]))
+                raise yubikey.YubiKeyVersionError('Ticket flag %s requires %s, and this is %s %d.%d'
+                                                  % (which, flag.req_string(self.capabilities.model), \
+                                                         self.capabilities.model, self.ykver[0], self.ykver[1]))
+            req_major, req_minor = flag.req_version()
             self._require_version(major=req_major, minor=req_minor)
             value = flag.to_integer()
         else:
@@ -322,10 +323,11 @@ class YubiKeyConfig():
         """
         flag = _get_flag(which, ConfigFlags)
         if flag:
-            req_major, req_minor = flag.req_version()
             if not self.capabilities.have_config_flag(flag):
-                raise yubikey.YubiKeyVersionError('Config flag %s requires YubiKey %d.%d, and this is %d.%d'
-                                                  % (which, req_major, req_minor, self.ykver[0], self.ykver[1]))
+                raise yubikey.YubiKeyVersionError('Config flag %s requires %s, and this is %s %d.%d'
+                                                  % (which, flag.req_string(self.capabilities.model), \
+                                                         self.capabilities.model, self.ykver[0], self.ykver[1]))
+            req_major, req_minor = flag.req_version()
             self._require_version(major=req_major, minor=req_minor)
             value = flag.to_integer()
         else:
@@ -344,10 +346,11 @@ class YubiKeyConfig():
         """
         flag = _get_flag(which, ExtendedFlags)
         if flag:
-            req_major, req_minor = flag.req_version()
             if not self.capabilities.have_extended_flag(flag):
-                raise yubikey.YubiKeyVersionError('Extended flag %s requires YubiKey %d.%d, and this is %d.%d'
-                                                  % (which, req_major, req_minor, self.ykver[0], self.ykver[1]))
+                raise yubikey.YubiKeyVersionError('Extended flag %s requires %s, and this is %s %d.%d'
+                                                  % (which, flag.req_string(self.capabilities.model), \
+                                                         self.capabilities.model, self.ykver[0], self.ykver[1]))
+            req_major, req_minor = flag.req_version()
             self._require_version(major=req_major, minor=req_minor)
             value = flag.to_integer()
         else:

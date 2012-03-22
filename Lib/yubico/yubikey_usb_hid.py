@@ -92,13 +92,13 @@ class YubiKeyUSBHIDCapabilities(yubikey.YubiKeyCapabilities):
         return (self.version >= (2, 2, 0,))
 
     def have_ticket_flag(self, flag):
-        return flag.is_compatible_ver(self.version)
+        return flag.is_compatible(model = self.model, version = self.version)
 
     def have_config_flag(self, flag):
-        return flag.is_compatible_ver(self.version)
+        return flag.is_compatible(model = self.model, version = self.version)
 
     def have_extended_flag(self, flag):
-        return flag.is_compatible_ver(self.version)
+        return flag.is_compatible(model = self.model, version = self.version)
 
     def have_extended_scan_code_mode(self):
         return (self.version >= (2, 0, 0,))
@@ -214,6 +214,7 @@ class YubiKeyUSBHID(YubiKey):
         """ Write a configuration to the YubiKey. """
         cfg_req_ver = cfg.version_required()
         if cfg_req_ver > self.version_num():
+            (cfg_major, cfg_minor,) = cfg_req_ver
             raise yubikey.YubiKeyVersionError('Configuration requires YubiKey version %i.%i (this is %s)' % \
                                                   (cfg_major, cfg_minor, self.version()))
         if not self.capabilities.have_configuration_slot(slot):
