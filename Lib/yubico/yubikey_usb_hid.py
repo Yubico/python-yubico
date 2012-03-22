@@ -85,13 +85,16 @@ class YubiKeyUSBHID(YubiKey):
         if not self._open(skip):
             raise YubiKeyUSBHIDError('YubiKey USB HID initialization failed')
         self.status()
+        self.capabilities = \
+            YubiKeyUSBHIDCapabilities(model = self.model, \
+                                          version = self.version_num(), \
+                                          default_answer = False)
 
     def __del__(self):
-        YubiKey.__del__(self)
         try:
             if self._usb_handle:
                 self._close()
-        except usb.USBError:
+        except IOError:
             pass
 
     def __repr__(self):
