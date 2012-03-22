@@ -1,7 +1,7 @@
 """
 utility functions used in yubikey_config.
 """
-# Copyright (c) 2010, Yubico AB
+# Copyright (c) 2010, 2012 Yubico AB
 # See the file COPYING for licence statement.
 
 __all__ = [
@@ -104,7 +104,7 @@ class YubiKeyConfigBits():
         return '<%s instance at %s: value 0x%x>' % (
             self.__class__.__name__,
             hex(id(self)),
-            self.key
+            self.value,
             )
 
     def get_set(self, flag, new):
