@@ -72,6 +72,17 @@ uri_identifiers = [
 class YubiKeyNEO_USBHIDError(yubico_exception.YubicoError):
     """ Exception raised for errors with the NEO USB HID communication. """
 
+class YubiKeyNEO_USBHIDCapabilities(yubikey_usb_hid.YubiKeyUSBHIDCapabilities):
+    """
+    Capabilities of current YubiKey NEO BETA firmwares 2.1.4 and 2.1.5.
+    """
+
+    def have_challenge_response(self, mode):
+        return False
+
+    def have_configuration_slot(self, slot):
+        return (slot == 1)
+
 class YubiKeyNEO_USBHID(yubikey_usb_hid.YubiKeyUSBHID):
     """
     Class for accessing a YubiKey NEO over USB HID.
@@ -81,6 +92,22 @@ class YubiKeyNEO_USBHID(yubikey_usb_hid.YubiKeyUSBHID):
 
     The NDEF is the tag the YubiKey emmits over it's NFC interface.
     """
+
+    model = 'YubiKey NEO'
+    description = 'YubiKey NEO'
+
+    def __init__(self, debug=False, skip=0):
+        """
+        Find and connect to a YubiKey NEO (USB HID).
+
+        Attributes :
+            skip  -- number of YubiKeys to skip
+            debug -- True or False
+        """
+        yubikey_usb_hid.YubiKeyUSBHID.__init__(self, debug, skip)
+        if self.version_num() >= (2, 1, 4,) and \
+                self.version_num() <= (2, 1, 9,):
+            self.description = 'YubiKey NEO BETA'
 
     def write_ndef(self, ndef):
         """

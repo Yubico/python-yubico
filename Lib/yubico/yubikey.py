@@ -16,7 +16,7 @@ Example usage (if using this module directly, see base module yubico) :
     except yubico.yubico_exception.YubicoError as inst:
         print "ERROR: %s" % inst.reason
 """
-# Copyright (c) 2010, 2011 Yubico AB
+# Copyright (c) 2010, 2011, 2012 Yubico AB
 # See the file COPYING for licence statement.
 
 __all__ = [
@@ -54,14 +54,102 @@ class YubiKeyTimeout(YubiKeyError):
     def __init__(self, reason='no details'):
         YubiKeyError.__init__(self, reason)
 
+class YubiKeyVersionError(YubiKeyError):
+    """
+    Exception raised when the YubiKey is not capable of something requested.
+
+    Attributes:
+        reason -- explanation of the error
+    """
+    def __init__(self, reason='no details'):
+        YubiKeyError.__init__(self, reason)
+
+
+class YubiKeyCapabilities():
+    """
+    Class expressing the functionality of a YubiKey.
+
+    This base class should be the superset of all sub-classes.
+
+    In this base class, we lie and say 'yes' to all capabilities.
+
+    If the base class is used (such as when creating a YubiKeyConfig()
+    before getting a YubiKey()), errors must be handled at runtime
+    (or later, when the user is unable to use the YubiKey).
+    """
+
+    model = 'Unknown'
+    version = (0, 0, 0,)
+    version_num = 0x0
+    default_answer = True
+
+    def __init__(self, model = None, version = None, default_answer = None):
+        self.model = model
+        if default_answer is not None:
+            self.default_answer = default_answer
+        if version is not None:
+            self.version = version
+            (major, minor, build,) = version
+            # convert 2.1.3 to 0x00020103
+            self.version_num = (major << 24) | (minor << 16) | build
+        return None
+
+    def __repr__(self):
+        return '<%s instance at %s: Device %s %s (default: %s)>' % (
+            self.__class__.__name__,
+            hex(id(self)),
+            self.model,
+            self.version,
+            self.default_answer,
+            )
+
+    def have_yubico_OTP(self):
+        return self.default_answer
+
+    def have_OATH(self, mode):
+        return self.default_answer
+
+    def have_challenge_response(self, mode):
+        return self.default_answer
+
+    def have_serial_number(self):
+        return self.default_answer
+
+    def have_ticket_flag(self, flag):
+        return self.default_answer
+
+    def have_config_flag(self, flag):
+        return self.default_answer
+
+    def have_extended_flag(self, flag):
+        return self.default_answer
+
+    def have_extended_scan_code_mode(self):
+        return self.default_answer
+
+    def have_shifted_1_mode(self):
+        return self.default_answer
+
+    def have_nfc_ndef(self):
+        return self.default_answer
+
+    def have_configuration_slot(self):
+        return self.default_answer
 
 class YubiKey():
     """
     Base class for accessing YubiKeys
     """
 
-    def __init__(self, debug):
+    debug = None
+    capabilities = None
+
+    def __init__(self, debug, capabilities = None):
         self.debug = debug
+        if capabilities is None:
+            self.capabilities = YubiKeyCapabilities(default_answer = False)
+        else:
+            self.capabilities = capabilities
         return None
 
     def __del__(self):
