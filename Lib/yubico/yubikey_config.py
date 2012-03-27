@@ -147,7 +147,7 @@ class YubiKeyConfig():
 
         Requires YubiKey 2.x.
         """
-        if not self.capablities.have_extended_scan_code_mode():
+        if not self.capabilities.have_extended_scan_code_mode():
             raise
         self._require_version(major=2)
         self.config_flag('SHORT_TICKET', True)
@@ -232,7 +232,7 @@ class YubiKeyConfig():
         if private_uid.startswith('h:'):
             private_uid = binascii.unhexlify(private_uid[2:])
         if len(private_uid) != yubikey_defs.UID_SIZE:
-            raise InputError('Private UID must be %i bytes' % (yubikey_defs.UID_SIZE))
+            raise yubico_exception.InputError('Private UID must be %i bytes' % (yubikey_defs.UID_SIZE))
 
         self._change_mode('YUBIKEY_OTP', major=0, minor=9)
         self.uid = private_uid
@@ -248,7 +248,7 @@ class YubiKeyConfig():
             raise yubikey.YubiKeyVersionError('OATH HOTP not available in %s version %d.%d' \
                                                   % (self.capabilities.model, self.ykver[0], self.ykver[1]))
         if digits != 6 and digits != 8:
-            raise InputError('OATH-HOTP digits must be 6 or 8')
+            raise yubico_exception.InputError('OATH-HOTP digits must be 6 or 8')
 
         self._change_mode('OATH_HOTP', major=2, minor=1)
         self._set_20_bytes_key(secret)
@@ -436,7 +436,7 @@ class YubiKeyConfig():
         """ Change mode of operation, with some sanity checks. """
         if self._mode:
             if self._mode != mode:
-                raise RuntimeError('Can\'t change mode (from %s to %s)' % (self._mode, this_mode))
+                raise RuntimeError('Can\'t change mode (from %s to %s)' % (self._mode, mode))
         self._require_version(major=major, minor=minor)
         self._mode = mode
         # when setting mode, we reset all flags

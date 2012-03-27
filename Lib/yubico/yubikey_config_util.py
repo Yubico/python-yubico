@@ -71,7 +71,7 @@ class YubiKeyFlag():
     def req_string(self, model):
         """ Return string describing model and version requirement. """
         if model not in self.models:
-            model = models
+            model = self.models
         if self.min_ykver and self.max_ykver:
             return "%s %d.%d..%d.%d" % (model, \
                                            self.min_ykver[0], self.min_ykver[1], \
@@ -107,7 +107,7 @@ class YubiKeyConfigFlag(YubiKeyFlag):
             assert()
         self.mode = mode
 
-        return YubiKeyFlag.__init__(self, key, value, doc=doc, min_ykver=min_ykver, max_ykver=max_ykver)
+        YubiKeyFlag.__init__(self, key, value, doc=doc, min_ykver=min_ykver, max_ykver=max_ykver)
 
 class YubiKeyExtendedFlag(YubiKeyFlag):
     """
@@ -119,7 +119,7 @@ class YubiKeyExtendedFlag(YubiKeyFlag):
             assert()
         self.mode = mode
 
-        return YubiKeyFlag.__init__(self, key, value, doc=doc, min_ykver=min_ykver, max_ykver=max_ykver)
+        YubiKeyFlag.__init__(self, key, value, doc=doc, min_ykver=min_ykver, max_ykver=max_ykver)
 
 class YubiKeyConfigBits():
     """
@@ -163,4 +163,4 @@ class YubiKeyConfigBits():
 
     def _clear(self, flag):
         """ Clear flag. """
-        self.value &= (0xff - flag)
+        self.value ^= flag

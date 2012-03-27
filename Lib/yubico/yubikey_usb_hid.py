@@ -214,9 +214,8 @@ class YubiKeyUSBHID(YubiKey):
         """ Write a configuration to the YubiKey. """
         cfg_req_ver = cfg.version_required()
         if cfg_req_ver > self.version_num():
-            (cfg_major, cfg_minor,) = cfg_req_ver
             raise yubikey.YubiKeyVersionError('Configuration requires YubiKey version %i.%i (this is %s)' % \
-                                                  (cfg_major, cfg_minor, self.version()))
+                                                  (cfg_req_ver[0], cfg_req_ver[1], self.version()))
         if not self.capabilities.have_configuration_slot(slot):
             raise YubiKeyUSBHIDError("Can't write configuration to slot %i" % (slot))
         return self._write_config(cfg, slot)
@@ -473,7 +472,7 @@ class YubiKeyUSBHID(YubiKey):
             if print_prefix:
                 pre = self.__class__.__name__
                 if hasattr(self, 'debug_prefix'):
-                    pre = self.debug_prefix
+                    pre = getattr(self, 'debug_prefix')
                 sys.stderr.write("%s: " % (self.__class__.__name__))
             sys.stderr.write(out)
 
