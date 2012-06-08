@@ -1,0 +1,103 @@
+.\" Copyright (c) 2012 Yubico AB
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions are
+.\" met:
+.\"
+.\"     * Redistributions of source code must retain the above copyright
+.\"       notice, this list of conditions and the following disclaimer.
+.\"
+.\"     * Redistributions in binary form must reproduce the above
+.\"       copyright notice, this list of conditions and the following
+.\"       disclaimer in the documentation and/or other materials provided
+.\"       with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+.\" "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+.\" LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+.\" A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+.\" OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+.\" SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+.\" LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+.\" DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+.\" THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+.\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+.\" OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.\"
+.\" The following commands are required for all man pages.
+.de URL
+\\$2 \(laURL: \\$1 \(ra\\$3
+..
+.if \n[.g] .mso www.tmac
+.TH yubikey-totp "1" "June 2012" "python-yubico"
+.SH NAME
+yubikey-totp - Produce an OATH TOTP code using a YubiKey
+.SH SYNOPSIS
+.B yubikey-totp
+[\fI-v\fR] [\fI-h\fR] [\fI--time\fR | \fI--step\fR] [\fI--digits\fR] [\fI--slot\fR] [\fI--debug\fR]
+
+.SH DESCRIPTION
+OATH codes are one time passwords (OTP) calculated in a standardized way. While the YubiKey
+is primarily used with Yubico OTP's, the YubiKey is also capable of producing OATH codes.
+
+OATH generally comes in two flavors -- event based (called HOTP) and time based (called TOTP).
+Since the YubiKey does not contain a battery, it cannot keep track of the current time itself
+and therefor a helper application such as yubikey-totp is required to effectively send the
+current time to the YubiKey, which can then perform the cryptographic calculation needed to
+produce the OATH code.
+
+Through the use of a helper application, such as yubikey-totp, the YubiKey can be used with
+sites offering OATH TOTP authentication, such as Google GMail.
+.SH OPTIONS
+.TP
+\fB\-v\fR
+enable verbose mode.
+.TP
+\fB\-h\fR
+show help
+.TP
+\fB\-\-time\fR
+specify the time value to use (in seconds since epoch)
+.TP
+\fB\-\-step\fR
+how frequent codes change in your system - typically 30 or 60 seconds
+.TP
+\fB\-\-digits\fR
+digits in OATH code - typically 6
+.TP
+\fB\-\-slot\fR
+YubiKey slot to use - default 2
+.TP
+\fB\-\-debug\fR
+enable debug output
+
+.SH EXAMPLE
+
+The YubiKey OATH TOTP operation can be demonstrated using the
+\fBRFC 6238\fR test key "12345678901234567890" (ASCII).
+.P
+First, program a YubiKey for HMAC-SHA1 Challenge-Response operation with the test vector HMAC key :
+.HP
+.nf
+  $ ykpersonalize -2 -ochal-resp -ochal-hmac -ohmac-lt64 \
+	-o serial-api-visible \
+	-a 3132333435363738393031323334353637383930
+.fi
+.HP
+Now, send the NIST test challenge to the YubiKey and verify the result matches the
+expected :
+.HP
+.nf
+$ yubikey-totp --step 30 --digits 8 --time 1111111109
+07081804
+$
+.fi
+
+.SH BUGS
+Report yubikey-totp bugs in
+.URL "https://github.com/Yubico/python-yubico/issues/" "the issue tracker" "."
+.SH "SEE ALSO"
+.PP
+YubiKeys can be obtained from
+.URL "http://www.yubico.com/" "Yubico" "."
