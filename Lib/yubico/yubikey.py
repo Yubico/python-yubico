@@ -152,9 +152,6 @@ class YubiKey():
             self.capabilities = capabilities
         return None
 
-    def __del__(self):
-        return None
-
     def version(self):
         """ Get the connected YubiKey's version as a string. """
         pass
