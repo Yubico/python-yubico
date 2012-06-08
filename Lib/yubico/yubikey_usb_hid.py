@@ -187,10 +187,11 @@ class YubiKeyUSBHID(YubiKey):
             raise yubikey.YubiKeyVersionError("%s challenge-response unsupported in YubiKey %s" % (mode, self.version()) )
         return self._challenge_response(challenge, mode, slot, variable, may_block)
 
-    def init_config(self):
+    def init_config(self, **kw):
         """ Get a configuration object for this type of YubiKey. """
-        return YubiKeyConfigUSBHID(ykver = self.version_num(), \
-                                       capabilities = self.capabilities)
+        return YubiKeyConfigUSBHID(ykver=self.version_num(), \
+                                       capabilities = self.capabilities, \
+                                       **kw)
 
     def write_config(self, cfg, slot=1):
         """ Write a configuration to the YubiKey. """
@@ -253,12 +254,13 @@ class YubiKeyUSBHID(YubiKey):
         """ Write configuration to YubiKey. """
         old_pgm_seq = self._status.pgm_seq
         frame = cfg.to_frame(slot=slot)
+        self._debug("Writing %s frame :\n%s\n" % \
+                        (yubikey_config.command2str(frame.command), cfg))
         self._write(frame)
         self._waitfor_clear(yubikey_defs.SLOT_WRITE_FLAG)
         # make sure we have a fresh pgm_seq value
         self.status()
-        if self.debug:
-            sys.stderr.write("Programming slot %i sequence %i -> %i\n" % (slot, old_pgm_seq, self._status.pgm_seq))
+        self._debug("Programmed slot %i, sequence %i -> %i\n" % (slot, old_pgm_seq, self._status.pgm_seq))
         if self._status.pgm_seq != old_pgm_seq + 1:
             raise YubiKeyUSBHIDError('YubiKey programming failed (seq %i not increased (%i))' % \
                                          (old_pgm_seq, self._status.pgm_seq))
@@ -291,9 +293,8 @@ class YubiKeyUSBHID(YubiKey):
                                           value = value,
                                           timeout = _USB_TIMEOUT_MS)
         if len(recv) != _FEATURE_RPT_SIZE:
-            if self.debug:
-                sys.stderr.write("Failed reading %i bytes (got %i) from USB HID YubiKey.\n"
-                                 % (_FEATURE_RPT_SIZE, recv))
+            self._debug("Failed reading %i bytes (got %i) from USB HID YubiKey.\n"
+                        % (_FEATURE_RPT_SIZE, recv))
             raise YubiKeyUSBHIDError('Failed reading from USB HID YubiKey')
         data = ''.join(chr(c) for c in recv)
         self._debug("READ  : %s" % (yubico_util.hexdump(data, colorize=True)))
@@ -305,10 +306,13 @@ class YubiKeyUSBHID(YubiKey):
 
         Includes polling for YubiKey readiness before each write.
         """
-        for data in frame.to_feature_reports():
+        for data in frame.to_feature_reports(debug=self.debug):
+            debug_str = None
+            if self.debug:
+                (data, debug_str) = data
             # first, we ensure the YubiKey will accept a write
             self._waitfor_clear(yubikey_defs.SLOT_WRITE_FLAG)
-            self._raw_write(data)
+            self._raw_write(data, debug_str)
         return True
 
     def _write_reset(self):
@@ -320,11 +324,15 @@ class YubiKeyUSBHID(YubiKey):
         self._waitfor_clear(yubikey_defs.SLOT_WRITE_FLAG)
         return True
 
-    def _raw_write(self, data):
+    def _raw_write(self, data, debug_str = None):
         """
         Write data to YubiKey.
         """
-        self._debug("WRITE : %s" % (yubico_util.hexdump(data, colorize=True)))
+        if self.debug:
+            if not debug_str:
+                debug_str = ''
+            hexdump = yubico_util.hexdump(data, colorize=True)[:-1] # strip LF
+            self._debug("WRITE : %s %s\n" % (hexdump, debug_str))
         request_type = _USB_TYPE_CLASS | _USB_RECIP_INTERFACE | _USB_ENDPOINT_OUT
         value = _REPORT_TYPE_FEATURE << 8	# apparently required for YubiKey 1.3.2, but not 2.2.x
         sent = self._usb_handle.controlMsg(request_type,
@@ -385,13 +393,13 @@ class YubiKeyUSBHID(YubiKey):
                 if not flags & mask == mask:
                     finished = True
                 else:
-                    self._debug("Status %s (0x%x) fails NAND %s (0x%x)\n"
+                    self._debug("Status %s (0x%x) has not cleared bits %s (0x%x)\n"
                                 % (bin(flags), flags, bin(mask), mask))
             elif mode is 'and':
                 if flags & mask == mask:
                     finished = True
                 else:
-                    self._debug("Status %s (0x%x) fails AND %s (0x%x)\n"
+                    self._debug("Status %s (0x%x) has not set bits %s (0x%x)\n"
                                 % (bin(flags), flags, bin(mask), mask))
             else:
                 assert()
@@ -415,7 +423,7 @@ class YubiKeyUSBHID(YubiKey):
 
         if usb_device:
             usb_conf = usb_device.configurations[0]
-            usb_int = usb_conf.interfaces[0][0]
+            self._usb_int = usb_conf.interfaces[0][0]
         else:
             raise YubiKeyUSBHIDError('No USB YubiKey found')
 
@@ -429,7 +437,16 @@ class YubiKeyUSBHID(YubiKey):
                 raise
 
         self._usb_handle.setConfiguration(1)
-        self._usb_handle.claimInterface(usb_int)
+        self._usb_handle.claimInterface(self._usb_int)
+        return True
+
+    def _close(self):
+        """
+        Release the USB interface again.
+        """
+        self._usb_handle.releaseInterface(self._usb_int)
+        self._usb_int = None
+        self._usb_handle = None
         return True
 
     def _get_usb_device(self, skip=0):
@@ -521,3 +538,11 @@ class YubiKeyUSBHIDStatus():
         if self.touch_level & self.CONFIG2_VALID == self.CONFIG2_VALID:
             res.append(2)
         return res
+
+class YubiKeyConfigUSBHID(yubikey_config.YubiKeyConfig):
+    """
+    Configuration class for USB HID YubiKeys.
+    """
+    def __init__(self, ykver, capabilities = None, **kw):
+        yubikey_config.YubiKeyConfig.__init__(self, ykver = ykver, capabilities = capabilities, **kw)
+        return None

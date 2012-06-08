@@ -111,6 +111,8 @@ class YubiKeyNEO_USBHID(yubikey_usb_hid.YubiKeyUSBHID):
 
     def write_ndef(self, ndef):
         """
+
+
         Write an NDEF tag configuration to the YubiKey NEO.
         """
         return self._write_config(ndef, _SLOT_NDEF)

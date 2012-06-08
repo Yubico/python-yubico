@@ -71,10 +71,31 @@ ExtendedFlags = [
     YubiKeyExtendedFlag('SERIAL_BTN_VISIBLE',	0x01, min_ykver=(2, 2), doc='Serial number visible at startup (button press)'),
     YubiKeyExtendedFlag('SERIAL_USB_VISIBLE',	0x02, min_ykver=(2, 2), doc='Serial number visible in USB iSerial field'),
     YubiKeyExtendedFlag('SERIAL_API_VISIBLE',	0x04, min_ykver=(2, 2), doc='Serial number visible via API call'),
+
+    # YubiKey 2.3 and above
+    YubiKeyExtendedFlag('USE_NUMERIC_KEYPAD',	0x08, min_ykver=(2, 3), doc='Use numeric keypad for digits'),
+    YubiKeyExtendedFlag('FAST_TRIG',		0x10, min_ykver=(2, 3), doc='Use fast trig if only cfg1 set'),
+    YubiKeyExtendedFlag('ALLOW_UPDATE',		0x20, min_ykver=(2, 3), doc='Allow update of existing configuration (selected flags + access code)'),
+    YubiKeyExtendedFlag('DORMANT',		0x40, min_ykver=(2, 3), doc='Dormant configuration (can be woken up and flag removed = requires update flag)'),
     ]
 
 SLOT_CONFIG			= 0x01	# First (default / V1) configuration
 SLOT_CONFIG2			= 0x03	# Second (V2) configuration
+SLOT_UPDATE1			= 0x04	# Update slot 1
+SLOT_UPDATE2			= 0x05	# Update slot 2
+SLOT_SWAP			= 0x06	# Swap slot 1 and 2
+
+def command2str(num):
+    """ Turn command number into name """
+    known = {0x01: "SLOT_CONFIG",
+             0x03: "SLOT_CONFIG2",
+             0x04: "SLOT_UPDATE1",
+             0x05: "SLOT_UPDATE2",
+             0x06: "SLOT_SWAP",
+             }
+    if num in known:
+        return known[num]
+    return "0x%02x" % (num)
 
 class YubiKeyConfigError(yubico_exception.YubicoError):
     """
@@ -85,9 +106,23 @@ class YubiKeyConfig():
     """
     Base class for configuration of all current types of YubiKeys.
     """
+    def __init__(self, ykver=None, capabilities=None, update=False, swap=False):
+        """
+        `ykver' is a tuple (major, minor) with the version number of the key
+        you are planning to apply this configuration to. Not mandated, but
+        will get you an exception when trying to set flags for example, rather
+        than the YubiKey just not operating as expected after programming.
 
-    def __init__(self, ykver = None, capabilities = None):
-        self.ykver = ykver
+        YubiKey >= 2.3 supports updating certain parts of a configuration
+        (for example turning on/off APPEND_CR) without overwriting others
+        (most notably the stored secret). Set `update' to True if this is
+        what you want. The current programming must have flag 'ALLOW_UPDATE'
+        set to allow configuration update instead of requiring complete
+        reprogramming.
+
+        YubiKey >= 2.3 also supports swapping the configurations, making
+        slot 1 be slot 2 and vice versa. Set swap=True for this.
+        """
         if capabilities is None:
             self.capabilities = yubikey.YubiKeyCapabilities(default_answer = True)
         else:
@@ -108,8 +143,30 @@ class YubiKeyConfig():
 
         self.unlock_code = ''
         self._mode = ''
+        if update or swap:
+            self._require_version(major=2, minor=3)
+        self._update_config = update
+        self._swap_slots = swap
 
         return None
+
+    def __repr__(self):
+        return '<%s instance at %s: mode %s, v=%s/%s, lf=%i, lu=%i, lk=%i, lac=%i, tf=%x, cf=%x, ef=%x, lu=%i, up=%s, sw=%s>' % (
+            self.__class__.__name__,
+            hex(id(self)),
+            self._mode,
+            self.yk_req_version, self.ykver,
+            len(self.fixed),
+            len(self.uid),
+            len(self.key),
+            len(self.access_code),
+            self.ticket_flags.to_integer(),
+            self.config_flags.to_integer(),
+            self.extended_flags.to_integer(),
+            len(self.unlock_code),
+            self._update_config,
+            self._swap_slots,
+            )
 
     def version_required(self):
         """
@@ -408,11 +465,21 @@ class YubiKeyConfig():
         data = self.to_string()
         payload = data.ljust(64, chr(0x0))
         if slot is 1:
-            command = SLOT_CONFIG
+            if self._update_config:
+                command = SLOT_UPDATE1
+            else:
+                command = SLOT_CONFIG
         elif slot is 2:
-            command = SLOT_CONFIG2
+            if self._update_config:
+                command = SLOT_UPDATE2
+            else:
+                command = SLOT_CONFIG2
         else:
             assert()
+
+        if self._swap_slots:
+            command = SLOT_SWAP
+
         return yubikey_frame.YubiKeyFrame(command=command, payload=payload)
 
     def _require_version(self, major, minor=0):

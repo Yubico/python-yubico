@@ -163,4 +163,4 @@ class YubiKeyConfigBits():
 
     def _clear(self, flag):
         """ Clear flag. """
-        self.value ^= flag
+        self.value &= (0xff - flag)
