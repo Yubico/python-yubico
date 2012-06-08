@@ -10,7 +10,8 @@ __all__ = [
   # functions
   # classes
   'YubiKeyUSBHID',
-  'YubiKeyUSBHIDError'
+  'YubiKeyUSBHIDError',
+  'YubiKeyUSBHIDStatus',
 ]
 
 from yubico import __version__
@@ -161,37 +162,18 @@ class YubiKeyUSBHID(YubiKey):
     def status(self):
         """
         Poll YubiKey for status.
-
-        Updates a bunch of attributes, such as the pgm_seq number, and returns
-        the status byte, where you can check for yubikey_defs.SLOT_WRITE_FLAG etc.
         """
         data = self._read()
-        # From ykdef.h :
-        #
-        # struct status_st {
-        #        unsigned char versionMajor;     /* Firmware version information */
-        #        unsigned char versionMinor;
-        #        unsigned char versionBuild;
-        #        unsigned char pgmSeq;           /* Programming sequence number. 0 if no valid configuration */
-        #        unsigned short touchLevel;      /* Level from touch detector */
-        # };
-        version_major, \
-            version_minor, \
-            version_build, \
-            self.pgm_seq, \
-            self.touch_level, \
-            flags = struct.unpack('<xBBBBHB', data)
-        self.ykver = (version_major, version_minor, version_build)
-        return flags
+        self._status = YubiKeyUSBHIDStatus(data)
+        return self._status
 
     def version_num(self):
-        """ Get the YubiKey version as a tuple with integers. """
-        return self.ykver
+        """ Get the YubiKey version as a tuple (major, minor, build). """
+        return self._status.ykver()
 
     def version(self):
         """ Get the YubiKey version. """
-        version = "%d.%d.%d" % (self.ykver)
-        return version
+        return self._status.version()
 
     def serial(self, may_block=True):
         """ Get the YubiKey serial number (requires YubiKey 2.2). """
@@ -269,15 +251,17 @@ class YubiKeyUSBHID(YubiKey):
 
     def _write_config(self, cfg, slot):
         """ Write configuration to YubiKey. """
-        old_pgm_seq = self.pgm_seq
+        old_pgm_seq = self._status.pgm_seq
         frame = cfg.to_frame(slot=slot)
         self._write(frame)
         self._waitfor_clear(yubikey_defs.SLOT_WRITE_FLAG)
         # make sure we have a fresh pgm_seq value
         self.status()
-        if self.pgm_seq != old_pgm_seq + 1:
+        if self.debug:
+            sys.stderr.write("Programming slot %i sequence %i -> %i\n" % (slot, old_pgm_seq, self._status.pgm_seq))
+        if self._status.pgm_seq != old_pgm_seq + 1:
             raise YubiKeyUSBHIDError('YubiKey programming failed (seq %i not increased (%i))' % \
-                                         (old_pgm_seq, self.pgm_seq))
+                                         (old_pgm_seq, self._status.pgm_seq))
 
     def _read_response(self, may_block=False):
         """ Wait for a response to become available, and read it. """
@@ -476,10 +460,64 @@ class YubiKeyUSBHID(YubiKey):
                 sys.stderr.write("%s: " % (self.__class__.__name__))
             sys.stderr.write(out)
 
-class YubiKeyConfigUSBHID(yubikey_config.YubiKeyConfig):
-    """
-    Configuration class for USB HID YubiKeys.
-    """
-    def __init__(self, ykver, capabilities = None):
-        yubikey_config.YubiKeyConfig.__init__(self, ykver = ykver, capabilities = capabilities)
-        return None
+class YubiKeyUSBHIDStatus():
+    """ Class to represent the status information we get from the YubiKey. """
+
+    CONFIG1_VALID = 0x01 # Bit in touchLevel indicating that configuration 1 is valid (from firmware 2.1)
+    CONFIG2_VALID = 0x02 # Bit in touchLevel indicating that configuration 2 is valid (from firmware 2.1)
+
+    def __init__(self, data):
+        # From ykdef.h :
+        #
+        # struct status_st {
+        #        unsigned char versionMajor;     /* Firmware version information */
+        #        unsigned char versionMinor;
+        #        unsigned char versionBuild;
+        #        unsigned char pgmSeq;           /* Programming sequence number. 0 if no valid configuration */
+        #        unsigned short touchLevel;      /* Level from touch detector */
+        # };
+        fmt = '<x BBB B H B'
+        self.version_major, \
+            self.version_minor, \
+            self.version_build, \
+            self.pgm_seq, \
+            self.touch_level, \
+            self.flags = struct.unpack(fmt, data)
+
+    def __repr__(self):
+        valid_str = ''
+        flags_str = ''
+        if self.ykver() >= (2,1,0):
+            valid_str = ", valid=%s" % (self.valid_configs())
+        if self.flags:
+            flags_str = " (flags 0x%x)" % (self.flags)
+        return '<%s instance at %s: YubiKey version %s, pgm_seq=%i, touch_level=%i%s%s>' % (
+            self.__class__.__name__,
+            hex(id(self)),
+            self.version(),
+            self.pgm_seq,
+            self.touch_level,
+            valid_str,
+            flags_str,
+            )
+
+
+    def ykver(self):
+        """ Returns a tuple with the (major, minor, build) version of the YubiKey firmware. """
+        return (self.version_major, self.version_minor, self.version_build)
+
+    def version(self):
+        """ Return the YubiKey firmware version as a string. """
+        version = "%d.%d.%d" % (self.ykver())
+        return version
+
+    def valid_configs(self):
+        """ Return a list of slots having a valid configurtion. Requires firmware 2.1. """
+        if self.ykver() < (2,1,0):
+            raise YubiKeyUSBHIDError('Valid configs unsupported in firmware %s' % (self.version()))
+        res = []
+        if self.touch_level & self.CONFIG1_VALID == self.CONFIG1_VALID:
+            res.append(1)
+        if self.touch_level & self.CONFIG2_VALID == self.CONFIG2_VALID:
+            res.append(2)
+        return res

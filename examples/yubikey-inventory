@@ -32,5 +32,5 @@ if not keys:
 else:
     n = 1
     for this in keys:
-        print "YubiKey #%i : %s %s" % (n, this.description, this.version())
+        print "YubiKey #%02i : %s %s" % (n, this.description, this.status())
         n += 1
