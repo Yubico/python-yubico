@@ -1,15 +1,18 @@
 """
 module for configuring YubiKeys
 """
-# Copyright (c) 2010, Yubico AB
+# Copyright (c) 2010, 2012 Yubico AB
 # See the file COPYING for licence statement.
 
 __all__ = [
     # constants
-    'TTicketFlags',
+    'TicketFlags',
+    'ConfigFlags',
+    'ExtendedFlags',
     # functions
     # classes
-    'YubiKeyConfigUSBHID',
+    'YubiKeyConfigError',
+    'YubiKeyConfig',
 ]
 
 from yubico import __version__
@@ -22,6 +25,7 @@ import yubikey_frame
 import yubico_exception
 import yubikey_config_util
 from yubikey_config_util import YubiKeyConfigBits, YubiKeyConfigFlag, YubiKeyExtendedFlag, YubiKeyTicketFlag
+import yubikey
 
 TicketFlags = [
     YubiKeyTicketFlag('TAB_FIRST',		0x01, min_ykver=(1, 0), doc='Send TAB before first part'),
@@ -79,18 +83,25 @@ class YubiKeyConfigError(yubico_exception.YubicoError):
 
 class YubiKeyConfig():
     """
-    Base class for configuration of all types of YubiKeys, present and future.
+    Base class for configuration of all current types of YubiKeys.
     """
 
-    def __init__(self, ykver=None):
+    def __init__(self, ykver = None, capabilities = None):
+        self.ykver = ykver
+        if capabilities is None:
+            self.capabilities = yubikey.YubiKeyCapabilities(default_answer = True)
+        else:
+            self.capabilities = capabilities
+
         # Minimum version of YubiKey this configuration will require
-        self.yk_req_version = (1, 3)
+        self.yk_req_version = (0, 0)
         self.ykver = ykver
 
         self.fixed = ''
         self.uid = ''
         self.key = ''
         self.access_code = ''
+
         self.ticket_flags = YubiKeyConfigBits(0x0)
         self.config_flags = YubiKeyConfigBits(0x0)
         self.extended_flags = YubiKeyConfigBits(0x0)
@@ -136,6 +147,8 @@ class YubiKeyConfig():
 
         Requires YubiKey 2.x.
         """
+        if not self.capabilities.have_extended_scan_code_mode():
+            raise
         self._require_version(major=2)
         self.config_flag('SHORT_TICKET', True)
         self.config_flag('STATIC_TICKET', False)
@@ -175,7 +188,7 @@ class YubiKeyConfig():
 
     def unlock_key(self, data):
         """
-        Access code to allow re-program your YubiKey.
+        Access code to allow re-programming of your YubiKey.
 
         Supply data as either a raw string, or a hexlified string prefixed by 'h:'.
         The result, after any hex decoding, must be 6 bytes.
@@ -213,8 +226,13 @@ class YubiKeyConfig():
         """
         Set the YubiKey up for standard OTP validation.
         """
+        if not self.capabilities.have_yubico_OTP():
+            raise yubikey.YubiKeyVersionError('Yubico OTP not available in %s version %d.%d' \
+                                                  % (self.capabilities.model, self.ykver[0], self.ykver[1]))
+        if private_uid.startswith('h:'):
+            private_uid = binascii.unhexlify(private_uid[2:])
         if len(private_uid) != yubikey_defs.UID_SIZE:
-            raise InputError('Private UID must be %i bytes' % (yubikey_defs.UID_SIZE))
+            raise yubico_exception.InputError('Private UID must be %i bytes' % (yubikey_defs.UID_SIZE))
 
         self._change_mode('YUBIKEY_OTP', major=0, minor=9)
         self.uid = private_uid
@@ -226,8 +244,11 @@ class YubiKeyConfig():
 
         Requires YubiKey 2.1.
         """
+        if not self.capabilities.have_OATH('HOTP'):
+            raise yubikey.YubiKeyVersionError('OATH HOTP not available in %s version %d.%d' \
+                                                  % (self.capabilities.model, self.ykver[0], self.ykver[1]))
         if digits != 6 and digits != 8:
-            raise InputError('OATH-HOTP digits must be 6 or 8')
+            raise yubico_exception.InputError('OATH-HOTP digits must be 6 or 8')
 
         self._change_mode('OATH_HOTP', major=2, minor=1)
         self._set_20_bytes_key(secret)
@@ -253,16 +274,21 @@ class YubiKeyConfig():
 
         Requires YubiKey 2.2.
         """
+        if not type.upper() in ['HMAC', 'OTP']:
+            raise yubico_exception.InputError('Invalid \'type\' (%s)' % type)
+        if not self.capabilities.have_challenge_response(type.upper()):
+            raise yubikey.YubiKeyVersionError('%s Challenge-Response not available in %s version %d.%d' \
+                                                  % (type.upper(), self.capabilities.model, \
+                                                         self.ykver[0], self.ykver[1]))
         self._change_mode('CHAL_RESP', major=2, minor=2)
         if type.upper() == 'HMAC':
             self.config_flag('CHAL_HMAC', True)
             self.config_flag('HMAC_LT64', variable)
             self._set_20_bytes_key(secret)
-        elif type.upper() == 'OTP':
+        else:
+            # type is 'OTP', checked above
             self.config_flag('CHAL_YUBICO', True)
             self.aes_key(secret)
-        else:
-            raise yubico_exception.InputError('Invalid \'type\' (%s)' % type)
         self.config_flag('CHAL_BTN_TRIG', require_button)
 
     def ticket_flag(self, which, new=None):
@@ -274,10 +300,11 @@ class YubiKeyConfig():
         """
         flag = _get_flag(which, TicketFlags)
         if flag:
+            if not self.capabilities.have_ticket_flag(flag):
+                raise yubikey.YubiKeyVersionError('Ticket flag %s requires %s, and this is %s %d.%d'
+                                                  % (which, flag.req_string(self.capabilities.model), \
+                                                         self.capabilities.model, self.ykver[0], self.ykver[1]))
             req_major, req_minor = flag.req_version()
-            if self.ykver and not flag.is_compatible_ver(self.ykver):
-                raise YubiKeyConfigError('Ticket flag %s requires YubiKey %d.%d, and this is %d.%d'
-                                         % (which, req_major, req_minor, self.ykver[0], self.ykver[1]))
             self._require_version(major=req_major, minor=req_minor)
             value = flag.to_integer()
         else:
@@ -291,15 +318,16 @@ class YubiKeyConfig():
         """
         Get or set a config flag.
 
-        'which' can be either a string ('APPEND_CR' etc.), or an integer.
+        'which' can be either a string ('PACING_20MS' etc.), or an integer.
         You should ALWAYS use a string, unless you really know what you are doing.
         """
         flag = _get_flag(which, ConfigFlags)
         if flag:
+            if not self.capabilities.have_config_flag(flag):
+                raise yubikey.YubiKeyVersionError('Config flag %s requires %s, and this is %s %d.%d'
+                                                  % (which, flag.req_string(self.capabilities.model), \
+                                                         self.capabilities.model, self.ykver[0], self.ykver[1]))
             req_major, req_minor = flag.req_version()
-            if self.ykver and not flag.is_compatible_ver(self.ykver):
-                raise YubiKeyConfigError('Config flag %s requires YubiKey %d.%d, and this is %d.%d'
-                                         % (which, req_major, req_minor, self.ykver[0], self.ykver[1]))
             self._require_version(major=req_major, minor=req_minor)
             value = flag.to_integer()
         else:
@@ -313,15 +341,16 @@ class YubiKeyConfig():
         """
         Get or set a extended flag.
 
-        'which' can be either a string ('APPEND_CR' etc.), or an integer.
+        'which' can be either a string ('SERIAL_API_VISIBLE' etc.), or an integer.
         You should ALWAYS use a string, unless you really know what you are doing.
         """
         flag = _get_flag(which, ExtendedFlags)
         if flag:
+            if not self.capabilities.have_extended_flag(flag):
+                raise yubikey.YubiKeyVersionError('Extended flag %s requires %s, and this is %s %d.%d'
+                                                  % (which, flag.req_string(self.capabilities.model), \
+                                                         self.capabilities.model, self.ykver[0], self.ykver[1]))
             req_major, req_minor = flag.req_version()
-            if self.ykver and not flag.is_compatible_ver(self.ykver):
-                raise YubiKeyConfigError('Config flag %s requires YubiKey %d.%d, and this is %d.%d'
-                                         % (which, req_major, req_minor, self.ykver[0], self.ykver[1]))
             self._require_version(major=req_major, minor=req_minor)
             value = flag.to_integer()
         else:
@@ -390,8 +419,8 @@ class YubiKeyConfig():
         """ Update the minimum version of YubiKey this configuration can be applied to. """
         new_ver = (major, minor)
         if self.ykver and new_ver > self.ykver:
-            raise YubiKeyConfigError('Configuration requires YubiKey %d.%d, and this is %d.%d'
-                                     % (major, minor, self.ykver[0], self.ykver[1]))
+            raise yubikey.YubiKeyVersionError('Configuration requires YubiKey %d.%d, and this is %d.%d'
+                                              % (major, minor, self.ykver[0], self.ykver[1]))
         if new_ver > self.yk_req_version:
             self.yk_req_version = new_ver
 
@@ -407,7 +436,7 @@ class YubiKeyConfig():
         """ Change mode of operation, with some sanity checks. """
         if self._mode:
             if self._mode != mode:
-                raise RuntimeError('Can\'t change mode (from %s to %s)' % (self._mode, this_mode))
+                raise RuntimeError('Can\'t change mode (from %s to %s)' % (self._mode, mode))
         self._require_version(major=major, minor=minor)
         self._mode = mode
         # when setting mode, we reset all flags
@@ -433,14 +462,6 @@ class YubiKeyConfig():
             self.uid = new[16:]
         else:
             raise yubico_exception.InputError('HMAC key must be exactly 20 bytes')
-
-class YubiKeyConfigUSBHID(YubiKeyConfig):
-    """
-    Configuration class for USB HID YubiKeys.
-    """
-    def __init__(self, ykver=None):
-        YubiKeyConfig.__init__(self, ykver)
-        return None
 
 def _get_flag(which, flags):
     """ Find 'which' entry in 'flags'. """

@@ -2,7 +2,7 @@
 module for accessing a USB HID YubiKey
 """
 
-# Copyright (c) 2010, 2011, Yubico AB
+# Copyright (c) 2010, 2011, 2012 Yubico AB
 # See the file COPYING for licence statement.
 
 __all__ = [
@@ -59,20 +59,76 @@ _CMD_CHALLENGE = {'HMAC': {1: _SLOT_CHAL_HMAC1, 2: _SLOT_CHAL_HMAC2},
 class YubiKeyUSBHIDError(yubico_exception.YubicoError):
     """ Exception raised for errors with the USB HID communication. """
 
+class YubiKeyUSBHIDCapabilities(yubikey.YubiKeyCapabilities):
+    """
+    Capture the capabilities of the various versions of YubiKeys.
+
+    Overrides just the functions from YubiKeyCapabilities() that are available
+    in one or more versions, leaving the other ones at False through default_answer.
+    """
+    def __init__(self, model, version, default_answer):
+        yubikey.YubiKeyCapabilities.__init__(self, model = model, \
+                                                 version = version, \
+                                                 default_answer = default_answer)
+
+    def have_yubico_OTP(self):
+        """ Yubico OTP support has always been available in the standard YubiKey. """
+        return True
+
+    def have_OATH(self, mode):
+        """ OATH HOTP was introduced in YubiKey 2.2. """
+        if mode not in ['HOTP']:
+            return False
+        return (self.version >= (2, 1, 0,))
+
+    def have_challenge_response(self, mode):
+        """ Challenge-response was introduced in YubiKey 2.2. """
+        if mode not in ['HMAC', 'OTP']:
+            return False
+        return (self.version >= (2, 2, 0,))
+
+    def have_serial_number(self):
+        """ Reading serial number was introduced in YubiKey 2.2, but depends on extflags set too. """
+        return (self.version >= (2, 2, 0,))
+
+    def have_ticket_flag(self, flag):
+        return flag.is_compatible(model = self.model, version = self.version)
+
+    def have_config_flag(self, flag):
+        return flag.is_compatible(model = self.model, version = self.version)
+
+    def have_extended_flag(self, flag):
+        return flag.is_compatible(model = self.model, version = self.version)
+
+    def have_extended_scan_code_mode(self):
+        return (self.version >= (2, 0, 0,))
+
+    def have_shifted_1_mode(self):
+        return (self.version >= (2, 0, 0,))
+
+    def have_configuration_slot(self, slot):
+        return (slot in [1, 2])
+
 class YubiKeyUSBHID(YubiKey):
     """
     Class for accessing a YubiKey over USB HID.
 
-    This class is for communicating specifically with the YubiKeys
-    presenting themselves as USB HID interfaces (the only ones available
-    as of 2011).
+    This class is for communicating specifically with standard YubiKeys
+    (USB vendor id = 0x1050, product id = 0x10) using USB HID.
+
+    There is another class for the YubiKey NEO BETA, even though that
+    product also goes by product id 0x10 for the BETA versions. The
+    expectation is that the final YubiKey NEO will have it's own product id.
 
     Tested with YubiKey versions 1.3 and 2.2.
     """
 
+    model = 'YubiKey'
+    description = 'YubiKey (or YubiKey NANO)'
+
     def __init__(self, debug=False, skip=0):
         """
-        Find and connect to a USB HIB YubiKey.
+        Find and connect to a YubiKey (USB HID).
 
         Attributes :
             skip  -- number of YubiKeys to skip
@@ -83,13 +139,16 @@ class YubiKeyUSBHID(YubiKey):
         if not self._open(skip):
             raise YubiKeyUSBHIDError('YubiKey USB HID initialization failed')
         self.status()
+        self.capabilities = \
+            YubiKeyUSBHIDCapabilities(model = self.model, \
+                                          version = self.version_num(), \
+                                          default_answer = False)
 
     def __del__(self):
-        YubiKey.__del__(self)
         try:
             if self._usb_handle:
                 self._close()
-        except usb.USBError:
+        except IOError:
             pass
 
     def __repr__(self):
@@ -135,31 +194,34 @@ class YubiKeyUSBHID(YubiKey):
         return version
 
     def serial(self, may_block=True):
-        """ Get the YubiKey serial number (requires YubiKey 2). """
-        if self.version_num() < (2, 0, 0):
-            raise YubiKeyUSBHIDError("Serial number unsupported in YubiKey %s" % self.version() )
+        """ Get the YubiKey serial number (requires YubiKey 2.2). """
+        if not self.capabilities.have_serial_number():
+            raise yubikey.YubiKeyVersionError("Serial number unsupported in YubiKey %s" % self.version() )
         return self._read_serial(may_block)
 
     def challenge_response(self, challenge, mode='HMAC', slot=1, variable=True, may_block=True):
-        """ Issue a challenge to the YubiKey and return the response (requires YubiKey 2). """
-        if self.version_num() < (2, 0, 0):
-            raise YubiKeyUSBHIDError("Challenge response unsupported in YubiKey %s" % self.version() )
+        """ Issue a challenge to the YubiKey and return the response (requires YubiKey 2.2). """
+        if not self.capabilities.have_challenge_response(mode):
+            raise yubikey.YubiKeyVersionError("%s challenge-response unsupported in YubiKey %s" % (mode, self.version()) )
         return self._challenge_response(challenge, mode, slot, variable, may_block)
 
     def init_config(self):
         """ Get a configuration object for this type of YubiKey. """
-        return yubikey_config.YubiKeyConfigUSBHID(ykver=self.version_num())
+        return YubiKeyConfigUSBHID(ykver = self.version_num(), \
+                                       capabilities = self.capabilities)
 
     def write_config(self, cfg, slot=1):
         """ Write a configuration to the YubiKey. """
         cfg_req_ver = cfg.version_required()
         if cfg_req_ver > self.version_num():
-            raise YubiKeyUSBHIDError('Configuration requires YubiKey version %i.%i (this is %s)' % \
-                                         (cfg_major, cfg_minor, self.version()))
+            raise yubikey.YubiKeyVersionError('Configuration requires YubiKey version %i.%i (this is %s)' % \
+                                                  (cfg_req_ver[0], cfg_req_ver[1], self.version()))
+        if not self.capabilities.have_configuration_slot(slot):
+            raise YubiKeyUSBHIDError("Can't write configuration to slot %i" % (slot))
         return self._write_config(cfg, slot)
 
     def _read_serial(self, may_block):
-        """ Read the serial number from a YubiKey > 2.0. """
+        """ Read the serial number from a YubiKey > 2.2. """
 
         frame = yubikey_frame.YubiKeyFrame(command = _SLOT_DEVICE_SERIAL)
         self._write(frame)
@@ -250,7 +312,7 @@ class YubiKeyUSBHID(YubiKey):
                                  % (_FEATURE_RPT_SIZE, recv))
             raise YubiKeyUSBHIDError('Failed reading from USB HID YubiKey')
         data = ''.join(chr(c) for c in recv)
-        self._debug("YubiKey USB HID: READ  : %s" % yubico_util.hexdump(data, colorize=True))
+        self._debug("READ  : %s" % (yubico_util.hexdump(data, colorize=True)))
         return data
 
     def _write(self, frame):
@@ -278,7 +340,7 @@ class YubiKeyUSBHID(YubiKey):
         """
         Write data to YubiKey.
         """
-        self._debug("YubiKey USB HID: WRITE : %s" % yubico_util.hexdump(data, colorize=True))
+        self._debug("WRITE : %s" % (yubico_util.hexdump(data, colorize=True)))
         request_type = _USB_TYPE_CLASS | _USB_RECIP_INTERFACE | _USB_ENDPOINT_OUT
         value = _REPORT_TYPE_FEATURE << 8	# apparently required for YubiKey 1.3.2, but not 2.2.x
         sent = self._usb_handle.controlMsg(request_type,
@@ -328,8 +390,8 @@ class YubiKeyUSBHID(YubiKey):
                 if not resp_timeout:
                     resp_timeout = True
                     seconds_left = flags & yubikey_defs.RESP_TIMEOUT_WAIT_MASK
-                    self._debug("YubiKey USB HID: Device indicates RESP_TIMEOUT (%i seconds left)\n"
-                                % (seconds_left))
+                    self._debug("Device indicates RESP_TIMEOUT (%i seconds left)\n" \
+                                    % (seconds_left))
                     if may_block:
                         # calculate new wait_num - never more than 20 seconds
                         seconds_left = min(20, seconds_left)
@@ -339,13 +401,13 @@ class YubiKeyUSBHID(YubiKey):
                 if not flags & mask == mask:
                     finished = True
                 else:
-                    self._debug("YubiKey USB HID: Status %s (0x%x) fails NAND %s (0x%x)\n"
+                    self._debug("Status %s (0x%x) fails NAND %s (0x%x)\n"
                                 % (bin(flags), flags, bin(mask), mask))
             elif mode is 'and':
                 if flags & mask == mask:
                     finished = True
                 else:
-                    self._debug("YubiKey USB HID: Status %s (0x%x) fails AND %s (0x%x)\n"
+                    self._debug("Status %s (0x%x) fails AND %s (0x%x)\n"
                                 % (bin(flags), flags, bin(mask), mask))
             else:
                 assert()
@@ -404,7 +466,20 @@ class YubiKeyUSBHID(YubiKey):
         """ Perform HID cleanup """
         self._usb_handle.releaseInterface()
 
-    def _debug(self, out):
+    def _debug(self, out, print_prefix=True):
         """ Print out to stderr, if debugging is enabled. """
         if self.debug:
+            if print_prefix:
+                pre = self.__class__.__name__
+                if hasattr(self, 'debug_prefix'):
+                    pre = getattr(self, 'debug_prefix')
+                sys.stderr.write("%s: " % (self.__class__.__name__))
             sys.stderr.write(out)
+
+class YubiKeyConfigUSBHID(yubikey_config.YubiKeyConfig):
+    """
+    Configuration class for USB HID YubiKeys.
+    """
+    def __init__(self, ykver, capabilities = None):
+        yubikey_config.YubiKeyConfig.__init__(self, ykver = ykver, capabilities = capabilities)
+        return None

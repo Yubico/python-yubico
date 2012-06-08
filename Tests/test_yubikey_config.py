@@ -3,16 +3,17 @@
 import unittest
 import yubico
 import yubico.yubikey_config
-from yubico.yubikey_config import YubiKeyConfigUSBHID
+from yubico.yubikey_usb_hid import YubiKeyConfigUSBHID
 import yubico.yubico_util
 import yubico.yubico_exception
 
 class YubiKeyTests(unittest.TestCase):
 
-    Config = ''
-
     def setUp(self):
-        self.Config = YubiKeyConfigUSBHID()
+        version = (2, 2, 0,)
+        capa = yubico.yubikey_usb_hid.YubiKeyUSBHIDCapabilities( \
+            model = 'YubiKey', version = version, default_answer = False)
+        self.Config = YubiKeyConfigUSBHID(ykver = version, capabilities = capa)
 
     def test_static_ticket(self):
         """ Test static ticket """
@@ -144,23 +145,27 @@ class YubiKeyTests(unittest.TestCase):
 
     def test_unknown_ticket_flag(self):
         """ Test setting unknown ticket flag  """
-        self.assertRaises(yubico.yubico_exception.InputError, self.Config.ticket_flag, 'YK_UNIT_TEST123', True)
+        Config = self.Config
+        self.assertRaises(yubico.yubico_exception.InputError, Config.ticket_flag, 'YK_UNIT_TEST123', True)
 
     def test_unknown_ticket_flag_integer(self):
         """ Test setting unknown ticket flag as integer """
         future_flag = 0xff
-        self.Config.ticket_flag(future_flag, True)
-        self.assertEqual(future_flag, self.Config.ticket_flags.to_integer())
+        Config = self.Config
+        Config.ticket_flag(future_flag, True)
+        self.assertEqual(future_flag, Config.ticket_flags.to_integer())
 
     def test_too_long_fixed_string(self):
         """ Test too long fixed string, and set as plain string """
-        self.assertRaises(yubico.yubico_exception.InputError, self.Config.ticket_flag, 'YK_UNIT_TEST123', True)
+        Config = self.Config
+        self.assertRaises(yubico.yubico_exception.InputError, Config.ticket_flag, 'YK_UNIT_TEST123', True)
 
     def test_default_flags(self):
         """ Test that no flags get set by default """
-        self.assertEqual(0x0, self.Config.ticket_flags.to_integer())
-        self.assertEqual(0x0, self.Config.config_flags.to_integer())
-        self.assertEqual(0x0, self.Config.extended_flags.to_integer())
+        Config = self.Config
+        self.assertEqual(0x0, Config.ticket_flags.to_integer())
+        self.assertEqual(0x0, Config.config_flags.to_integer())
+        self.assertEqual(0x0, Config.extended_flags.to_integer())
 
     def test_oath_hotp_like_windows(self):
         """ Test plain OATH-HOTP with NIST test vector """
@@ -262,34 +267,38 @@ class YubiKeyTests(unittest.TestCase):
 
     def test_version_required_1(self):
         """ Test YubiKey 1 with v2 option """
-
-        Config = YubiKeyConfigUSBHID(ykver=(1, 3))
-        self.assertRaises(yubico.yubikey_config.YubiKeyConfigError, Config.config_flag, 'SHORT_TICKET', True)
+        version = (1, 3, 0,)
+        capa = yubico.yubikey_usb_hid.YubiKeyUSBHIDCapabilities( \
+            model = 'YubiKey', version = version, default_answer = False)
+        Config = YubiKeyConfigUSBHID(ykver = version, capabilities = capa)
+        self.assertRaises(yubico.yubikey.YubiKeyVersionError, Config.config_flag, 'SHORT_TICKET', True)
 
     def test_version_required_2(self):
         """ Test YubiKey 2 with v2 option """
 
-        Config = YubiKeyConfigUSBHID(ykver=(2, 2))
+        Config = self.Config
         Config.config_flag('SHORT_TICKET', True)
         self.assertEqual((2, 0), Config.version_required())
 
     def test_version_required_3(self):
         """ Test YubiKey 2 with v1 option """
 
-        Config = YubiKeyConfigUSBHID(ykver=(2, 2))
-        self.assertRaises(yubico.yubikey_config.YubiKeyConfigError, Config.config_flag, 'TICKET_FIRST', True)
+        Config = self.Config
+        self.assertRaises(yubico.yubikey.YubiKeyVersionError, Config.config_flag, 'TICKET_FIRST', True)
 
     def test_version_required_4(self):
         """ Test YubiKey 2.1 with v2.2 mode """
-
-        Config = YubiKeyConfigUSBHID(ykver=(2, 1))
+        version = (2, 1, 0,)
+        capa = yubico.yubikey_usb_hid.YubiKeyUSBHIDCapabilities( \
+            model = 'YubiKey', version = version, default_answer = False)
+        Config = YubiKeyConfigUSBHID(ykver = version, capabilities = capa)
         secret = 'h:303132333435363738393a3b3c3d3e3f40414243'
-        self.assertRaises(yubico.yubikey_config.YubiKeyConfigError, Config.mode_challenge_response, secret)
+        self.assertRaises(yubico.yubikey.YubiKeyVersionError, Config.mode_challenge_response, secret)
 
     def test_version_required_5(self):
         """ Test YubiKey 2.2 with v2.2 mode """
 
-        Config = YubiKeyConfigUSBHID(ykver=(2, 2))
+        Config = self.Config
         secret = 'h:303132333435363738393a3b3c3d3e3f'
         Config.mode_challenge_response(secret, type='OTP')
         self.assertEqual('CHAL_RESP', Config._mode)
