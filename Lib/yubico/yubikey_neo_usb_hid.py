@@ -83,6 +83,9 @@ class YubiKeyNEO_USBHIDCapabilities(yubikey_usb_hid.YubiKeyUSBHIDCapabilities):
     def have_configuration_slot(self, slot):
         return (slot == 1)
 
+    def have_nfc_ndef(self):
+        return True
+
 class YubiKeyNEO_USBHID(yubikey_usb_hid.YubiKeyUSBHID):
     """
     Class for accessing a YubiKey NEO over USB HID.
