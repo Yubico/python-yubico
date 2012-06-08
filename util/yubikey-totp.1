@@ -80,16 +80,15 @@ The YubiKey OATH TOTP operation can be demonstrated using the
 First, program a YubiKey for HMAC-SHA1 Challenge-Response operation with the test vector HMAC key :
 .HP
 .nf
-  $ ykpersonalize -2 -ochal-resp -ochal-hmac -ohmac-lt64 \
-	-o serial-api-visible \
-	-a 3132333435363738393031323334353637383930
+$ \fBykpersonalize \-2 \-ochal\-resp \-ochal\-hmac \-ohmac\-lt64 \-o serial\-api\-visible \\
+	\-a 3132333435363738393031323334353637383930\fR
 .fi
 .HP
 Now, send the NIST test challenge to the YubiKey and verify the result matches the
 expected :
 .HP
 .nf
-$ yubikey-totp --step 30 --digits 8 --time 1111111109
+$ \fByubikey\-totp \-\-step 30 \-\-digits 8 \-\-time 1111111109\fR
 07081804
 $
 .fi
