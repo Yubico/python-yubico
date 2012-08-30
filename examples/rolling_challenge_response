@@ -150,7 +150,7 @@ def roll_next_challenge(args, hmac_key, inner_dict):
     print "Expected response   : %s (sssh, don't tell anyone)" % (response)
     print ""
     if args.debug or args.verbose or args.init:
-        print "To manually verify that your YubiKey procudes this response, use :"
+        print "To manually verify that your YubiKey produces this response, use :"
         print ""
         print "  $ ykchalresp -%i -x %s" % (args.slot, challenge.encode('hex'))
         print ""
