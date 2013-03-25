@@ -45,6 +45,8 @@ _REPORT_TYPE_FEATURE	= 0x03
 # from ykdef.h
 _YUBICO_VID		= 0x1050
 _YUBIKEY_PID		= 0x0010
+_NEO_OTP_PID 		= 0x0110
+_NEO_OTP_CCID_PID 	= 0x0111
 # commands from ykdef.h
 _SLOT_DEVICE_SERIAL	= 0x10 # Device serial number
 _SLOT_CHAL_OTP1		= 0x20 # Write 6 byte challenge to slot 1, get Yubico OTP response
@@ -457,10 +459,11 @@ class YubiKeyUSBHID(YubiKey):
         """
         for bus in usb.busses():
             for device in bus.devices:
-                if device.idVendor == _YUBICO_VID and device.idProduct == _YUBIKEY_PID:
-                    if skip == 0:
-                        return device
-                    skip -= 1
+                if device.idVendor == _YUBICO_VID:
+                    if device.idProduct in [_YUBIKEY_PID, _NEO_OTP_PID, _NEO_OTP_CCID_PID]:
+                        if skip == 0:
+                            return device
+                        skip -= 1
         return None
 
     def _close(self):

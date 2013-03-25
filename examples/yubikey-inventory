@@ -20,7 +20,8 @@ def get_all_yubikeys(debug):
             res.append(YK)
             skip += 1
     except yubico.yubikey.YubiKeyError:
-        return res
+        pass
+    return res
 
 debug = False
 if len(sys.argv) > 1:
