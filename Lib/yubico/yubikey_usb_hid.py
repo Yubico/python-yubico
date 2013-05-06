@@ -27,6 +27,7 @@ import struct
 import time
 import usb
 import sys
+import platform
 
 # Various USB/HID parameters
 _USB_TYPE_CLASS		= (0x01 << 5)
@@ -431,7 +432,8 @@ class YubiKeyUSBHID(YubiKey):
 
         try:
             self._usb_handle = usb_device.open()
-            self._usb_handle.detachKernelDriver(0)
+            if platform.system().lower() == "linux":
+                    self._usb_handle.detachKernelDriver(0)
         except usb.USBError, error:
             if 'could not detach kernel driver from interface' in str(error):
                 self._debug('The in-kernel-HID driver has already been detached\n')
@@ -439,7 +441,8 @@ class YubiKeyUSBHID(YubiKey):
                 raise
 
         self._usb_handle.setConfiguration(1)
-        self._usb_handle.claimInterface(self._usb_int)
+        if platform.system().lower() == "linux":
+            self._usb_handle.claimInterface(self._usb_int)
         return True
 
     def _close(self):
