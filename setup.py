@@ -2,13 +2,10 @@
 
 from setuptools import setup
 from release import release
-import sys
-
-sys.path.append('Lib')
 
 setup(
     name='python-yubico',
-    version='1.1.1',
+    version='1.2.0',
     description='Python code for talking to Yubico\'s YubiKeys',
     author='Fredrik Thulin',
     author_email='fredrik@yubico.com',
@@ -17,7 +14,6 @@ setup(
     url='https://github.com/Yubico/python-yubico',
     license='BSD 2 clause',
     packages=['yubico'],
-    package_dir={'': 'Lib'},
     install_requires=['pyusb'],
     setup_requires=['nose>=1.0'],
     test_suite="nose.collector",

@@ -34,7 +34,6 @@ Like this :
 
 
 import sys
-sys.path.append('Lib')
 import time
 import struct
 import yubico
