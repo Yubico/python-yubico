@@ -64,17 +64,14 @@ that in Debian/Ubuntu). You will also need the Python USB package
 from http://pyusb.berlios.de/ - package called python-usb in
 Debian/Ubuntu.
 
-I use Ubuntu, so I created a PPA (Personal Package Archive) for
-easy installation (and removal) on Ubuntu systems.
-
 If you use a recent Ubuntu release, you should be able to install
 python-yubico with these commands :
 
-  $ sudo add-apt-repository ppa:fredrikt/yubico
+  $ sudo add-apt-repository ppa:yubico/stable
   $ sudo apt-get update
   $ sudo apt-get install python-yubico
 
-The Launchpad PPA key generated for my packages is C7E50642.
+The Launchpad PPA key generated for our packages is 32CBA1A9.
 
 
 ================
