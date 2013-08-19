@@ -432,11 +432,11 @@ class YubiKeyUSBHID(YubiKey):
         try:
             self._usb_handle = usb_device.open()
             self._usb_handle.detachKernelDriver(0)
-        except usb.USBError, error:
+        except Exception, error:
             if 'could not detach kernel driver from interface' in str(error):
                 self._debug('The in-kernel-HID driver has already been detached\n')
             else:
-                raise
+                self._debug("detachKernelDriver not supported!")
 
         self._usb_handle.setConfiguration(1)
         self._usb_handle.claimInterface(self._usb_int)
@@ -457,13 +457,22 @@ class YubiKeyUSBHID(YubiKey):
 
         Optionally allows you to skip n devices, to support multiple attached YubiKeys.
         """
-        for bus in usb.busses():
-            for device in bus.devices:
-                if device.idVendor == _YUBICO_VID:
-                    if device.idProduct in [_YUBIKEY_PID, _NEO_OTP_PID, _NEO_OTP_CCID_PID]:
-                        if skip == 0:
-                            return device
-                        skip -= 1
+        try:
+            # PyUSB >= 1.0, this is a workaround for a problem with libusbx
+            # on Windows.
+            import usb.core
+            import usb.legacy
+            devices = [usb.legacy.Device(d) for d in usb.core.find(
+                find_all=True, idVendor=_YUBIKEY_PID)]
+        except ImportError:
+            # Using PyUsb < 1.0.
+            devices = [d for bus in usb.busses() for d in bus.devices]
+        for device in devices:
+            if device.idVendor == _YUBICO_VID:
+                if device.idProduct in [_YUBIKEY_PID, _NEO_OTP_PID, _NEO_OTP_CCID_PID]:
+                    if skip == 0:
+                        return device
+                    skip -= 1
         return None
 
     def _close(self):
