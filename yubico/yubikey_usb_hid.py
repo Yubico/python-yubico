@@ -445,14 +445,14 @@ class YubiKeyUSBHID(YubiKey):
         """
         Release the USB interface again.
         """
-        self._usb_handle.releaseInterface(self._usb_int)
-        self._usb_int = None
-        self._usb_handle = None
-        # If we're using PyUSB >= 1.0 we can re-attach the kernel driver here.
+        self._usb_handle.releaseInterface()
         try:
+            # If we're using PyUSB >= 1.0 we can re-attach the kernel driver here.
             self._usb_handle.dev.attach_kernel_driver(0)
         except:
             pass
+        self._usb_int = None
+        self._usb_handle = None
         return True
 
     def _get_usb_device(self, skip=0):
@@ -479,10 +479,6 @@ class YubiKeyUSBHID(YubiKey):
                         return device
                     skip -= 1
         return None
-
-    def _close(self):
-        """ Perform HID cleanup """
-        self._usb_handle.releaseInterface()
 
     def _debug(self, out, print_prefix=True):
         """ Print out to stderr, if debugging is enabled. """
