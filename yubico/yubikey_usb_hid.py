@@ -467,7 +467,7 @@ class YubiKeyUSBHID(YubiKey):
             import usb.core
             import usb.legacy
             devices = [usb.legacy.Device(d) for d in usb.core.find(
-                find_all=True, idVendor=_YUBIKEY_PID)]
+                find_all=True, idVendor=_YUBICO_VID)]
         except ImportError:
             # Using PyUsb < 1.0.
             import usb
