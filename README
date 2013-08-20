@@ -1,8 +1,9 @@
 Python package for talking to YubiKeys.
 
-Author : Fredrik Thulin <fredrik@yubico.com>
+Author : Fredrik Thulin <fredrik@yubico.com>,
+         Dain Nilsson <dain@yubico.com>
 
-Copyright (c) 2011, 2012 Yubico AB
+Copyright (c) 2011-2013 Yubico AB
 See the file COPYING for licence statement.
 
 
@@ -62,7 +63,11 @@ python-yubico is installable in the standard-python way :
 This requires the python-setuptools (well, the package is called
 that in Debian/Ubuntu). You will also need the Python USB package
 from http://pyusb.berlios.de/ - package called python-usb in
-Debian/Ubuntu.
+Debian/Ubuntu. Note that while both the 0.4 branch and the 1.0
+branch are supported, the older 0.4 branch doesn't support 
+re-attaching the kernel device driver on close, which will leave
+the YubiKey in a state where it is unable to output OTPs until it
+has been unplugged and plugged back in again.
 
 If you use a recent Ubuntu release, you should be able to install
 python-yubico with these commands :
@@ -72,6 +77,10 @@ python-yubico with these commands :
   $ sudo apt-get install python-yubico
 
 The Launchpad PPA key generated for our packages is 32CBA1A9.
+
+If you use Windows, you will require a PyUSB backend. Python-yubico
+has been tested with http://libusbx.org/ and confirmed working, 
+without the need for replacing the device driver.
 
 
 ================
