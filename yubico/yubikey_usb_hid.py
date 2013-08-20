@@ -25,7 +25,6 @@ import yubikey
 from yubikey import YubiKey
 import struct
 import time
-import usb
 import sys
 
 # Various USB/HID parameters
@@ -449,6 +448,11 @@ class YubiKeyUSBHID(YubiKey):
         self._usb_handle.releaseInterface(self._usb_int)
         self._usb_int = None
         self._usb_handle = None
+        # If we're using PyUSB >= 1.0 we can re-attach the kernel driver here.
+        try:
+            self._usb_handle.dev.attach_kernel_driver(0)
+        except:
+            pass
         return True
 
     def _get_usb_device(self, skip=0):
@@ -466,6 +470,7 @@ class YubiKeyUSBHID(YubiKey):
                 find_all=True, idVendor=_YUBIKEY_PID)]
         except ImportError:
             # Using PyUsb < 1.0.
+            import usb
             devices = [d for bus in usb.busses() for d in bus.devices]
         for device in devices:
             if device.idVendor == _YUBICO_VID:
