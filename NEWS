@@ -1,3 +1,8 @@
+* Version 1.2.1 (released 2013-09-05)
+
+  * Improved Windows compatibility.
+  * Re-attach kernel driver if using PyUSB >= 1.0
+
 * Version 1.2.0 (released 2013-08-07)
 
   * Moved modules into root instead of Lib/.

@@ -5,7 +5,7 @@ from release import release
 
 setup(
     name='python-yubico',
-    version='1.2.0',
+    version='1.2.1',
     description='Python code for talking to Yubico\'s YubiKeys',
     author='Fredrik Thulin',
     author_email='fredrik@yubico.com',
@@ -16,7 +16,7 @@ setup(
     packages=['yubico'],
     install_requires=['pyusb'],
     setup_requires=['nose>=1.0'],
-    test_suite="nose.collector",
+    test_suite='nose.collector',
     cmdclass={'release': release},
     classifiers=[
         'License :: OSI Approved :: BSD License',
