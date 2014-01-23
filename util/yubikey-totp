@@ -40,7 +40,7 @@ import yubico
 import argparse
 
 default_slot=2
-default_time=int(time.mktime(time.gmtime()))
+default_time=int(time.time())
 default_step=30
 default_digits=6
 
