@@ -31,7 +31,7 @@ def parse_args():
     """
     Parse the command line arguments
     """
-    parser = argparse.ArgumentParser(description = "Demonstrate rolling challenges",
+    parser = argparse.ArgumentParser(description="Demonstrate rolling challenges",
                                      add_help=True
                                      )
     parser.add_argument('-v', '--verbose',
@@ -56,12 +56,12 @@ def parse_args():
                         )
     parser.add_argument('--challenge-length',
                         dest='challenge_length',
-                        type = int, default = 32,
+                        type=int, default=32,
                         help='Length of challenges generated, in bytes.'
                         )
     parser.add_argument('--slot',
                         dest='slot',
-                        type = int, default = 2,
+                        type=int, default=2,
                         help='YubiKey slot to send challenge to.'
                         )
 
@@ -80,7 +80,7 @@ def init_demo(args):
     else:
         hmac_key = os.urandom(20)
     if len(hmac_key) != 20:
-        sys.stderr.write("Decoded HMAC-SHA1 key is %i bytes, expected 20.\n" %( len(hmac_key)))
+        sys.stderr.write("Decoded HMAC-SHA1 key is %i bytes, expected 20.\n" % (len(hmac_key)))
         sys.exit(1)
 
     print "To program a YubiKey >= 2.2 for challenge-response with this key, use :"
@@ -126,11 +126,11 @@ def get_yubikey_response(args, challenge):
     """
     Do challenge-response with the YubiKey if one is found. Otherwise prompt user to fake a response. """
     try:
-        YK = yubico.find_yubikey(debug = args.debug)
-        response = YK.challenge_response(challenge.ljust(64, chr(0x0)), slot = args.slot)
+        y_key = yubico.find_yubikey(debug=args.debug)
+        response = y_key.challenge_response(challenge.ljust(64, chr(0x0)), slot=args.slot)
         return response
-    except yubico.yubico_exception.YubicoError as e:
-        print "YubiKey challenge-response failed (%s)" % e.reason
+    except yubico.yubico_exception.YubicoError as exc:
+        print "YubiKey challenge-response failed (%s)" % exc.reason
         print ""
     response = raw_input("Assuming you do not have a YubiKey. Enter repsonse manually (hex encoded) : ")
     return response
@@ -156,14 +156,14 @@ def roll_next_challenge(args, hmac_key, inner_dict):
         print ""
 
     inner_dict["hmac_key"] = hmac_key.encode('hex')
-    inner_j = json.dumps(inner_dict, indent = 4)
+    inner_j = json.dumps(inner_dict, indent=4)
     if args.verbose or args.debug:
         print "Inner JSON :\n%s\n" % (inner_j)
     inner_ciphertext = encrypt_with_response(args, inner_j, response)
     outer_dict = {"challenge": challenge.encode('hex'),
                   "inner": inner_ciphertext,
                   }
-    outer_j = json.dumps(outer_dict, indent = 4)
+    outer_j = json.dumps(outer_dict, indent=4)
     if args.verbose or args.debug:
         print "\nOuter JSON :\n%s\n" % (outer_j)
 
@@ -172,8 +172,8 @@ def roll_next_challenge(args, hmac_key, inner_dict):
 
 def get_response(hmac_key, challenge):
     """ Compute the expected response for `challenge'. """
-    h = hmac.new(hmac_key, challenge, hashlib.sha1)
-    return h.hexdigest()
+    digest = hmac.new(hmac_key, challenge, hashlib.sha1)
+    return digest.hexdigest()
 
 def encrypt_with_response(args, data, key):
     """
@@ -194,7 +194,7 @@ def encrypt_with_response(args, data, key):
     aes_key = key.decode('hex')
     aes_key += chr(0x0) * (32 - len(aes_key))
     if args.debug:
-        print ("AES-CBC encrypting 'inner' with key (%i bytes) : %s" % (len(aes_key), aes_key.encode('hex')))
+        print "AES-CBC encrypting 'inner' with key (%i bytes) : %s" % (len(aes_key), aes_key.encode('hex'))
 
     obj = AES.new(aes_key, AES.MODE_CBC)
     ciphertext = obj.encrypt(data)
@@ -213,7 +213,7 @@ def decrypt_with_response(args, data, key):
     # need to pad key
     aes_key += chr(0x0) * (32 - len(aes_key))
     if args.debug:
-        print ("AES-CBC decrypting 'inner' using key (%i bytes) : %s" % (len(aes_key), aes_key.encode('hex')))
+        print "AES-CBC decrypting 'inner' using key (%i bytes) : %s" % (len(aes_key), aes_key.encode('hex'))
 
     obj = AES.new(aes_key, AES.MODE_CBC)
     plaintext = obj.decrypt(data.decode('hex'))
@@ -221,9 +221,9 @@ def decrypt_with_response(args, data, key):
 
 def write_state_file(args, data):
     """ Save state to file. """
-    f = open(args.filename, 'w')
-    f.write(data)
-    f.close()
+    state_file = open(args.filename, 'w')
+    state_file.write(data)
+    state_file.close()
 
 def load_state_file(args):
     """ Load (and parse) the state file. """
