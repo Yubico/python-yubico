@@ -3,5 +3,6 @@
 .*~
 *.egg-info
 .coverage
+.ropeproject/
 dist/
 ChangeLog
