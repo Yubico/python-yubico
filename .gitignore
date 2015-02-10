@@ -2,6 +2,7 @@
 *~
 .*~
 *.egg-info
+*.egg
 .coverage
 .ropeproject/
 dist/
