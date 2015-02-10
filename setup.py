@@ -5,7 +5,7 @@ from release import release
 
 setup(
     name='python-yubico',
-    version='1.2.1',
+    version='1.2.2',
     description='Python code for talking to Yubico\'s YubiKeys',
     author='Fredrik Thulin',
     author_email='fredrik@yubico.com',
