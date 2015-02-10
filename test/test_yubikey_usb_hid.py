@@ -18,10 +18,15 @@ class TestYubiKeyUSBHID(unittest.TestCase):
         """ Test connecting to the YubiKey """
         if self.YK is None:
             try:
+                print "open key"
                 self.YK = YubiKeyUSBHID()
                 return
             except YubiKeyUSBHIDError, err:
                 self.fail("No YubiKey connected (?) : %s" % str(err))
+
+    def tearDown(self):
+        if self.YK is not None:
+            del self.YK
 
     #@unittest.skipIf(YK is None, "No USB HID YubiKey found")
     def test_status(self):
