@@ -1,61 +1,51 @@
+== python-yubico
 Python package for talking to YubiKeys.
 
-Author : Fredrik Thulin <fredrik@yubico.com>,
-         Dain Nilsson <dain@yubico.com>
+Copyright (c) Yubico AB
+Licensed under the BSD 2-clause license.
+See the file COPYING for full licence statement.
 
-Copyright (c) 2011-2013 Yubico AB
-See the file COPYING for licence statement.
-
-
-================
-  Introduction
-================
-
+=== Introduction
 The YubiKey is a hardware token for authentication. The main
 mode of the YubiKey is entering a one time password (or a strong
 static password) by acting as a USB HID device, but there are
 things one can do with bi-directional communication.
 
-  1) Configuration. The yubikey_config class should be a feature-
-     wise complete implementation of everything that can be
-     configured on YubiKeys version 1.3 to 2.2 (besides deprecated
-     functions in YubiKey 1.x).
+1) Configuration. The yubikey_config class should be a feature-
+   wise complete implementation of everything that can be
+   configured on YubiKeys version 1.3 to 2.2 (besides deprecated
+   functions in YubiKey 1.x).
+   See examples/configure_nist_test_key for an example.
 
-     See examples/configure_nist_test_key for an example.
+2) Challenge-response. YubiKey 2.2 supports HMAC-SHA1 or Yubico
+   challenge-response operations.
+   See examples/nist_challenge_response for an example.
 
-  2) Challenge-response. YubiKey 2.2 supports HMAC-SHA1 or Yubico
-     challenge-response operations.
-
-     See examples/nist_challenge_response for an example.
-
-
-================
-    Example
-================
-
+===  Example
 Here is a trivial usage example :
 
-    #!/usr/bin/env python
-    """ Get version of connected YubiKey. """
+[source, python]
+----
+#!/usr/bin/env python
+""" Get version of connected YubiKey. """
 
-    import sys
-    import yubico
+import sys
+import yubico
 
-    debug = False
+try:
+    yubikey = yubico.find_yubikey(debug=False)
+    print "Version : %s " % yubikey.version()
+except yubico.yubico_exception.YubicoError as e:
+    print "ERROR: %s" % e.reason
+    sys.exit(1)
+----
 
-    try:
-        YK = yubico.find_yubikey(debug=debug)
-	print "Version : %s " % YK.version()
-    except yubico.yubico_exception.YubicoError as inst:
-	print "ERROR: %s" % inst.reason
-        sys.exit(1)
+=== Installation
+python-yubico is installable via pip:
 
+  $ pip install yubico-python
 
-================
-  Installation
-================
-
-python-yubico is installable in the standard-python way :
+Or, directly from the source package in the standard-python way:
 
   $ cd python-yubico-$ver
   $ python setup.py install
@@ -81,8 +71,3 @@ The Launchpad PPA key generated for our packages is 32CBA1A9.
 If you use Windows, you will require a PyUSB backend. Python-yubico
 has been tested with http://libusbx.org/ and confirmed working, 
 without the need for replacing the device driver.
-
-
-================
-
-Comments, feedback and patches welcome!
