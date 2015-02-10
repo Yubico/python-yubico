@@ -2,10 +2,22 @@
 
 from setuptools import setup
 from release import release
+import re
+
+VERSION_PATTERN = re.compile(r"(?m)^__version__\s*=\s*['\"](.+)['\"]$")
+
+
+def get_version():
+    """Return the current version as defined by yubico/__init__.py."""
+
+    with open('yubico/__init__.py', 'r') as f:
+        match = VERSION_PATTERN.search(f.read())
+        return match.group(1)
+
 
 setup(
     name='python-yubico',
-    version='1.2.2',
+    version=get_version(),
     description='Python code for talking to Yubico\'s YubiKeys',
     author='Fredrik Thulin',
     author_email='fredrik@yubico.com',
