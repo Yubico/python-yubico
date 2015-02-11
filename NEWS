@@ -1,5 +1,6 @@
-* Version 1.2.2 (unreleased)
+* Version 1.2.2 (released 2015-02-11)
  ** Fixed bug in yubikey-totp using wrong timestamp.
+ ** No longer require nose for setup, only for tests.
 
 * Version 1.2.1 (released 2013-09-05)
  ** Improved Windows compatibility.
