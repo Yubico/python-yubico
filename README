@@ -43,7 +43,7 @@ except yubico.yubico_exception.YubicoError as e:
 === Installation
 python-yubico is installable via pip:
 
-  $ pip install yubico-python
+  $ pip install python-yubico
 
 Or, directly from the source package in the standard-python way:
 
