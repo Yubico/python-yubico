@@ -1,25 +1,23 @@
 == python-yubico
 Python package for talking to YubiKeys.
 
-Copyright (c) Yubico AB
-Licensed under the BSD 2-clause license.
-See the file COPYING for full licence statement.
-
 === Introduction
 The YubiKey is a hardware token for authentication. The main
 mode of the YubiKey is entering a one time password (or a strong
 static password) by acting as a USB HID device, but there are
-things one can do with bi-directional communication.
+things one can do with bi-directional communication:
 
-1) Configuration. The yubikey_config class should be a feature-
+1. Configuration. The yubikey_config class should be a feature-
    wise complete implementation of everything that can be
    configured on YubiKeys version 1.3 to 2.2 (besides deprecated
    functions in YubiKey 1.x).
-   See examples/configure_nist_test_key for an example.
+   See `examples/configure_nist_test_key` for an example.
 
-2) Challenge-response. YubiKey 2.2 supports HMAC-SHA1 or Yubico
+2. Challenge-response. YubiKey 2.2 supports HMAC-SHA1 or Yubico
    challenge-response operations.
-   See examples/nist_challenge_response for an example.
+   See `examples/nist_challenge_response` for an example.
+   
+This library makes it easy to use these two features.
 
 ===  Example
 Here is a trivial usage example :
@@ -41,18 +39,29 @@ except yubico.yubico_exception.YubicoError as e:
 ----
 
 === Installation
+
+==== Using the Ubuntu/Debian package manager
+If you use a recent Ubuntu release, you should be able to install
+python-yubico with these commands :
+
+  $ sudo add-apt-repository ppa:yubico/stable
+  $ sudo apt-get update
+  $ sudo apt-get install python-yubico
+
+The Launchpad PPA key generated for our packages is 32CBA1A9.
+
+==== Using Pip
 python-yubico is installable via pip:
 
   $ pip install python-yubico
 
-Or, directly from the source package in the standard-python way:
+Or, directly from the source package in the standard Python way:
 
   $ cd python-yubico-$ver
   $ python setup.py install
 
-This requires the python-setuptools (well, the package is called
-that in Debian/Ubuntu). You will also need 
-http://walac.github.io/pyusb[PyUSB] -- called python-usb in
+This requires the `python-setuptools` package. You will also need 
+http://walac.github.io/pyusb[PyUSB], called python-usb in
 Debian/Ubuntu. `pyusb` is available on PyPI and may be installed
 with pip: `pip install --pre pyusb`  The --pre command-line option
 indicates that pre-releases of `pyusb` may also be searched (only
@@ -63,15 +72,12 @@ re-attaching the kernel device driver on close, which will leave
 the YubiKey in a state where it is unable to output OTPs until it
 has been unplugged and plugged back in again.
 
-If you use a recent Ubuntu release, you should be able to install
-python-yubico with these commands :
-
-  $ sudo add-apt-repository ppa:yubico/stable
-  $ sudo apt-get update
-  $ sudo apt-get install python-yubico
-
-The Launchpad PPA key generated for our packages is 32CBA1A9.
-
+==== On Windows
 If you use Windows, you will require a PyUSB backend. Python-yubico
-has been tested with http://libusbx.org/ and confirmed working, 
+has been tested with http://libusbx.org[libusbx] and confirmed working, 
 without the need for replacing the device driver.
+
+=== License
+Copyright (c) Yubico AB.
+Licensed under the BSD 2-clause license.
+See the file COPYING for full licence statement.
