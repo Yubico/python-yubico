@@ -51,8 +51,8 @@ Or, directly from the source package in the standard-python way:
   $ python setup.py install
 
 This requires the python-setuptools (well, the package is called
-that in Debian/Ubuntu). You will also need the Python USB package
-from http://pyusb.berlios.de/ - package called python-usb in
+that in Debian/Ubuntu). You will also need 
+http://walac.github.io/pyusb[PyUSB] -- called python-usb in
 Debian/Ubuntu. `pyusb` is available on PyPI and may be installed
 with pip: `pip install --pre pyusb`  The --pre command-line option
 indicates that pre-releases of `pyusb` may also be searched (only
