@@ -26,32 +26,56 @@ from yubikey import YubiKey
 import struct
 import time
 import sys
+import usb
 
 # Various USB/HID parameters
-_USB_TYPE_CLASS		= (0x01 << 5)
-_USB_RECIP_INTERFACE	= 0x01
-_USB_ENDPOINT_IN	= 0x80
-_USB_ENDPOINT_OUT	= 0x00
+_USB_TYPE_CLASS         = (0x01 << 5)
+_USB_RECIP_INTERFACE    = 0x01
+_USB_ENDPOINT_IN        = 0x80
+_USB_ENDPOINT_OUT       = 0x00
 
-_HID_GET_REPORT		= 0x01
-_HID_SET_REPORT		= 0x09
+_HID_GET_REPORT         = 0x01
+_HID_SET_REPORT         = 0x09
 
-_USB_TIMEOUT_MS		= 100
+_USB_TIMEOUT_MS         = 2000
 
 # from ykcore_backend.h
-_FEATURE_RPT_SIZE	= 8
-_REPORT_TYPE_FEATURE	= 0x03
+_FEATURE_RPT_SIZE       = 8
+_REPORT_TYPE_FEATURE    = 0x03
 # from ykdef.h
-_YUBICO_VID		= 0x1050
-_YUBIKEY_PID		= 0x0010
-_NEO_OTP_PID 		= 0x0110
-_NEO_OTP_CCID_PID 	= 0x0111
+_YUBICO_VID             = 0x1050
+_YUBIKEY_PID            = 0x0010
+_NEO_OTP_PID            = 0x0110
+_NEO_OTP_CCID_PID       = 0x0111
+_NEO_OTP_U2F_PID        = 0x0114
+_NEO_OTP_U2F_CCID_PID   = 0x0116
+
+_YK4_OTP_PID            = 0x0401
+_YK4_OTP_U2F_PID        = 0x0403
+_YK4_OTP_CCID_PID       = 0x0405
+_YK4_OTP_U2F_CCID_PID   = 0x0407
+
+_PLUS_U2F_OTP_PID       = 0x0410
+
+_YK_PIDS = [
+    _YUBIKEY_PID,
+    _NEO_OTP_PID,
+    _NEO_OTP_CCID_PID,
+    _NEO_OTP_U2F_PID,
+    _NEO_OTP_U2F_CCID_PID,
+    _YK4_OTP_PID,
+    _YK4_OTP_U2F_PID,
+    _YK4_OTP_CCID_PID,
+    _YK4_OTP_U2F_CCID_PID,
+    _PLUS_U2F_OTP_PID
+]
+
 # commands from ykdef.h
-_SLOT_DEVICE_SERIAL	= 0x10 # Device serial number
-_SLOT_CHAL_OTP1		= 0x20 # Write 6 byte challenge to slot 1, get Yubico OTP response
-_SLOT_CHAL_OTP2		= 0x28 # Write 6 byte challenge to slot 2, get Yubico OTP response
-_SLOT_CHAL_HMAC1	= 0x30 # Write 64 byte challenge to slot 1, get HMAC-SHA1 response
-_SLOT_CHAL_HMAC2	= 0x38 # Write 64 byte challenge to slot 2, get HMAC-SHA1 response
+_SLOT_DEVICE_SERIAL    = 0x10 # Device serial number
+_SLOT_CHAL_OTP1        = 0x20 # Write 6 byte challenge to slot 1, get Yubico OTP response
+_SLOT_CHAL_OTP2        = 0x28 # Write 6 byte challenge to slot 2, get Yubico OTP response
+_SLOT_CHAL_HMAC1       = 0x30 # Write 64 byte challenge to slot 1, get HMAC-SHA1 response
+_SLOT_CHAL_HMAC2       = 0x38 # Write 64 byte challenge to slot 2, get HMAC-SHA1 response
 
 # dict used to select command for mode+slot in _challenge_response
 _CMD_CHALLENGE = {'HMAC': {1: _SLOT_CHAL_HMAC1, 2: _SLOT_CHAL_HMAC2},
@@ -287,7 +311,7 @@ class YubiKeyUSBHID(YubiKey):
     def _read(self):
         """ Read a USB HID feature report from the YubiKey. """
         request_type = _USB_TYPE_CLASS | _USB_RECIP_INTERFACE | _USB_ENDPOINT_IN
-        value = _REPORT_TYPE_FEATURE << 8	# apparently required for YubiKey 1.3.2, but not 2.2.x
+        value = _REPORT_TYPE_FEATURE << 8    # apparently required for YubiKey 1.3.2, but not 2.2.x
         recv = self._usb_handle.controlMsg(request_type,
                                           _HID_GET_REPORT,
                                           _FEATURE_RPT_SIZE,
@@ -335,7 +359,7 @@ class YubiKeyUSBHID(YubiKey):
             hexdump = yubico_util.hexdump(data, colorize=True)[:-1] # strip LF
             self._debug("WRITE : %s %s\n" % (hexdump, debug_str))
         request_type = _USB_TYPE_CLASS | _USB_RECIP_INTERFACE | _USB_ENDPOINT_OUT
-        value = _REPORT_TYPE_FEATURE << 8	# apparently required for YubiKey 1.3.2, but not 2.2.x
+        value = _REPORT_TYPE_FEATURE << 8    # apparently required for YubiKey 1.3.2, but not 2.2.x
         sent = self._usb_handle.controlMsg(request_type,
                                           _HID_SET_REPORT,
                                           data,
@@ -374,7 +398,7 @@ class YubiKeyUSBHID(YubiKey):
         sleep = 0.01
         # After six sleeps, we've slept 0.64 seconds.
         wait_num = (timeout * 2) - 1 + 6
-        resp_timeout = False	# YubiKey hasn't indicated RESP_TIMEOUT (yet)
+        resp_timeout = False    # YubiKey hasn't indicated RESP_TIMEOUT (yet)
         while not finished:
             this = self._read()
             flags = ord(this[7])
@@ -435,9 +459,12 @@ class YubiKeyUSBHID(YubiKey):
             if 'could not detach kernel driver from interface' in str(error):
                 self._debug('The in-kernel-HID driver has already been detached\n')
             else:
-                self._debug("detachKernelDriver not supported!")
+                self._debug("detachKernelDriver not supported!\n")
 
-        self._usb_handle.setConfiguration(1)
+        try:
+            self._usb_handle.setConfiguration(1)
+        except usb.USBError:
+            self._debug("Unable to set configuration, ignoring...\n")
         self._usb_handle.claimInterface(self._usb_int)
         return True
 
@@ -474,7 +501,7 @@ class YubiKeyUSBHID(YubiKey):
             devices = [d for bus in usb.busses() for d in bus.devices]
         for device in devices:
             if device.idVendor == _YUBICO_VID:
-                if device.idProduct in [_YUBIKEY_PID, _NEO_OTP_PID, _NEO_OTP_CCID_PID]:
+                if device.idProduct in _YK_PIDS:
                     if skip == 0:
                         return device
                     skip -= 1
