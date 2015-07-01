@@ -25,7 +25,7 @@ import yubikey_frame
 import yubico_exception
 import yubikey_config_util
 from yubikey_config_util import YubiKeyConfigBits, YubiKeyConfigFlag, YubiKeyExtendedFlag, YubiKeyTicketFlag
-import yubikey
+import yubikey_base
 
 # these used to be defined here; import them for backwards compatibility
 from yubikey_defs import SLOT_CONFIG, SLOT_CONFIG2, SLOT_UPDATE1, SLOT_UPDATE2, SLOT_SWAP, command2str
@@ -110,7 +110,7 @@ class YubiKeyConfig():
         slot 1 be slot 2 and vice versa. Set swap=True for this.
         """
         if capabilities is None:
-            self.capabilities = yubikey.YubiKeyCapabilities(default_answer = True)
+            self.capabilities = yubikey_base.YubiKeyCapabilities(default_answer = True)
         else:
             self.capabilities = capabilities
 
@@ -270,8 +270,8 @@ class YubiKeyConfig():
         Set the YubiKey up for standard OTP validation.
         """
         if not self.capabilities.have_yubico_OTP():
-            raise yubikey.YubiKeyVersionError('Yubico OTP not available in %s version %d.%d' \
-                                                  % (self.capabilities.model, self.ykver[0], self.ykver[1]))
+            raise yubikey_base.YubiKeyVersionError('Yubico OTP not available in %s version %d.%d' \
+                                                   % (self.capabilities.model, self.ykver[0], self.ykver[1]))
         if private_uid.startswith('h:'):
             private_uid = binascii.unhexlify(private_uid[2:])
         if len(private_uid) != yubikey_defs.UID_SIZE:
@@ -288,8 +288,8 @@ class YubiKeyConfig():
         Requires YubiKey 2.1.
         """
         if not self.capabilities.have_OATH('HOTP'):
-            raise yubikey.YubiKeyVersionError('OATH HOTP not available in %s version %d.%d' \
-                                                  % (self.capabilities.model, self.ykver[0], self.ykver[1]))
+            raise yubikey_base.YubiKeyVersionError('OATH HOTP not available in %s version %d.%d' \
+                                                   % (self.capabilities.model, self.ykver[0], self.ykver[1]))
         if digits != 6 and digits != 8:
             raise yubico_exception.InputError('OATH-HOTP digits must be 6 or 8')
 
@@ -320,9 +320,9 @@ class YubiKeyConfig():
         if not type.upper() in ['HMAC', 'OTP']:
             raise yubico_exception.InputError('Invalid \'type\' (%s)' % type)
         if not self.capabilities.have_challenge_response(type.upper()):
-            raise yubikey.YubiKeyVersionError('%s Challenge-Response not available in %s version %d.%d' \
-                                                  % (type.upper(), self.capabilities.model, \
-                                                         self.ykver[0], self.ykver[1]))
+            raise yubikey_base.YubiKeyVersionError('%s Challenge-Response not available in %s version %d.%d' \
+                                                   % (type.upper(), self.capabilities.model, \
+                                                          self.ykver[0], self.ykver[1]))
         self._change_mode('CHAL_RESP', major=2, minor=2)
         if type.upper() == 'HMAC':
             self.config_flag('CHAL_HMAC', True)
@@ -344,8 +344,8 @@ class YubiKeyConfig():
         flag = _get_flag(which, TicketFlags)
         if flag:
             if not self.capabilities.have_ticket_flag(flag):
-                raise yubikey.YubiKeyVersionError('Ticket flag %s requires %s, and this is %s %d.%d'
-                                                  % (which, flag.req_string(self.capabilities.model), \
+                raise yubikey_base.YubiKeyVersionError('Ticket flag %s requires %s, and this is %s %d.%d'
+                                                       % (which, flag.req_string(self.capabilities.model), \
                                                          self.capabilities.model, self.ykver[0], self.ykver[1]))
             req_major, req_minor = flag.req_version()
             self._require_version(major=req_major, minor=req_minor)
@@ -367,8 +367,8 @@ class YubiKeyConfig():
         flag = _get_flag(which, ConfigFlags)
         if flag:
             if not self.capabilities.have_config_flag(flag):
-                raise yubikey.YubiKeyVersionError('Config flag %s requires %s, and this is %s %d.%d'
-                                                  % (which, flag.req_string(self.capabilities.model), \
+                raise yubikey_base.YubiKeyVersionError('Config flag %s requires %s, and this is %s %d.%d'
+                                                       % (which, flag.req_string(self.capabilities.model), \
                                                          self.capabilities.model, self.ykver[0], self.ykver[1]))
             req_major, req_minor = flag.req_version()
             self._require_version(major=req_major, minor=req_minor)
@@ -390,8 +390,8 @@ class YubiKeyConfig():
         flag = _get_flag(which, ExtendedFlags)
         if flag:
             if not self.capabilities.have_extended_flag(flag):
-                raise yubikey.YubiKeyVersionError('Extended flag %s requires %s, and this is %s %d.%d'
-                                                  % (which, flag.req_string(self.capabilities.model), \
+                raise yubikey_base.YubiKeyVersionError('Extended flag %s requires %s, and this is %s %d.%d'
+                                                       % (which, flag.req_string(self.capabilities.model), \
                                                          self.capabilities.model, self.ykver[0], self.ykver[1]))
             req_major, req_minor = flag.req_version()
             self._require_version(major=req_major, minor=req_minor)
@@ -472,7 +472,7 @@ class YubiKeyConfig():
         """ Update the minimum version of YubiKey this configuration can be applied to. """
         new_ver = (major, minor)
         if self.ykver and new_ver > self.ykver:
-            raise yubikey.YubiKeyVersionError('Configuration requires YubiKey %d.%d, and this is %d.%d'
+            raise yubikey_base.YubiKeyVersionError('Configuration requires YubiKey %d.%d, and this is %d.%d'
                                               % (major, minor, self.ykver[0], self.ykver[1]))
         if new_ver > self.yk_req_version:
             self.yk_req_version = new_ver

@@ -21,8 +21,8 @@ import yubico_exception
 import yubikey_frame
 import yubikey_config
 import yubikey_defs
-import yubikey
-from yubikey import YubiKey
+import yubikey_base
+from yubikey_base import YubiKey
 import struct
 import time
 import sys
@@ -85,7 +85,7 @@ _CMD_CHALLENGE = {'HMAC': {1: _SLOT_CHAL_HMAC1, 2: _SLOT_CHAL_HMAC2},
 class YubiKeyUSBHIDError(yubico_exception.YubicoError):
     """ Exception raised for errors with the USB HID communication. """
 
-class YubiKeyUSBHIDCapabilities(yubikey.YubiKeyCapabilities):
+class YubiKeyUSBHIDCapabilities(yubikey_base.YubiKeyCapabilities):
     """
     Capture the capabilities of the various versions of YubiKeys.
 
@@ -93,9 +93,9 @@ class YubiKeyUSBHIDCapabilities(yubikey.YubiKeyCapabilities):
     in one or more versions, leaving the other ones at False through default_answer.
     """
     def __init__(self, model, version, default_answer):
-        yubikey.YubiKeyCapabilities.__init__(self, model = model, \
-                                                 version = version, \
-                                                 default_answer = default_answer)
+        yubikey_base.YubiKeyCapabilities.__init__(self, model = model, \
+                                                    version = version, \
+                                                    default_answer = default_answer)
 
     def have_yubico_OTP(self):
         """ Yubico OTP support has always been available in the standard YubiKey. """
@@ -203,13 +203,13 @@ class YubiKeyUSBHID(YubiKey):
     def serial(self, may_block=True):
         """ Get the YubiKey serial number (requires YubiKey 2.2). """
         if not self.capabilities.have_serial_number():
-            raise yubikey.YubiKeyVersionError("Serial number unsupported in YubiKey %s" % self.version() )
+            raise yubikey_base.YubiKeyVersionError("Serial number unsupported in YubiKey %s" % self.version() )
         return self._read_serial(may_block)
 
     def challenge_response(self, challenge, mode='HMAC', slot=1, variable=True, may_block=True):
         """ Issue a challenge to the YubiKey and return the response (requires YubiKey 2.2). """
         if not self.capabilities.have_challenge_response(mode):
-            raise yubikey.YubiKeyVersionError("%s challenge-response unsupported in YubiKey %s" % (mode, self.version()) )
+            raise yubikey_base.YubiKeyVersionError("%s challenge-response unsupported in YubiKey %s" % (mode, self.version()) )
         return self._challenge_response(challenge, mode, slot, variable, may_block)
 
     def init_config(self, **kw):
@@ -222,7 +222,7 @@ class YubiKeyUSBHID(YubiKey):
         """ Write a configuration to the YubiKey. """
         cfg_req_ver = cfg.version_required()
         if cfg_req_ver > self.version_num():
-            raise yubikey.YubiKeyVersionError('Configuration requires YubiKey version %i.%i (this is %s)' % \
+            raise yubikey_base.YubiKeyVersionError('Configuration requires YubiKey version %i.%i (this is %s)' % \
                                                   (cfg_req_ver[0], cfg_req_ver[1], self.version()))
         if not self.capabilities.have_configuration_slot(slot):
             raise YubiKeyUSBHIDError("Can't write configuration to slot %i" % (slot))
@@ -436,7 +436,7 @@ class YubiKeyUSBHID(YubiKey):
                         reason = 'Timed out waiting for YubiKey to clear status 0x%x' % mask
                     else:
                         reason = 'Timed out waiting for YubiKey to set status 0x%x' % mask
-                    raise yubikey.YubiKeyTimeout(reason)
+                    raise yubikey_base.YubiKeyTimeout(reason)
                 time.sleep(sleep)
                 sleep = min(sleep + sleep, 0.5)
             else:
