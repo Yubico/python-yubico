@@ -35,7 +35,7 @@ class TestCRC(unittest.TestCase):
         self.assertEqual(yubico_util.hexdump(bytes, length=4), \
                              '0000   01 02 03 04\n0004   05 06 07 08\n')
 
-    def test_hexdump(self):
+    def test_hexdump2(self):
         """ Test hexdump function, with colors """
         bytes = b'\x01\x02\x03\x04\x05\x06\x07\x08'
         self.assertEqual(yubico_util.hexdump(bytes, length=4, colorize=True), \
