@@ -41,9 +41,9 @@ class TestYubiKeyUSBHID(unittest.TestCase):
     def test_challenge_response(self):
         """ Test challenge-response, assumes a NIST PUB 198 A.2 20 bytes test vector in Slot 2 (variable input) """
 
-        secret = struct.pack('64s', 'Sample #2')
+        secret = struct.pack('64s', b'Sample #2')
         response = self.YK.challenge_response(secret, mode='HMAC', slot=2)
-        self.assertEqual(response, '\x09\x22\xd3\x40\x5f\xaa\x3d\x19\x4f\x82\xa4\x58\x30\x73\x7d\x5c\xc6\xc7\x5d\x24')
+        self.assertEqual(response, b'\x09\x22\xd3\x40\x5f\xaa\x3d\x19\x4f\x82\xa4\x58\x30\x73\x7d\x5c\xc6\xc7\x5d\x24')
 
     #@unittest.skipIf(self.YK is None, "No USB HID YubiKey found")
     def test_serial(self):

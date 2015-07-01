@@ -25,24 +25,24 @@ class YubiKeyTests(unittest.TestCase):
         #ticket_flags: APPEND_CR
         #config_flags: STATIC_TICKET
 
-        expected = ['\x00\x00\x00\x00\x00\x00\x00\x80',
-                    '\x00\xe2\xbe\xe9\xa3\x65\x68\x83',
-                    '\xa0\x0d\x02\x6a\x02\xf8\x5e\x84',
-                    '\x61\xe6\xfb\x00\x00\x00\x00\x85',
-                    '\x00\x00\x00\x00\x20\x20\x00\x86',
-                    '\x00\x5a\x93\x00\x00\x00\x00\x87',
-                    '\x00\x01\x95\x56\x00\x00\x00\x89'
+        expected = [b'\x00\x00\x00\x00\x00\x00\x00\x80',
+                    b'\x00\xe2\xbe\xe9\xa3\x65\x68\x83',
+                    b'\xa0\x0d\x02\x6a\x02\xf8\x5e\x84',
+                    b'\x61\xe6\xfb\x00\x00\x00\x00\x85',
+                    b'\x00\x00\x00\x00\x20\x20\x00\x86',
+                    b'\x00\x5a\x93\x00\x00\x00\x00\x87',
+                    b'\x00\x01\x95\x56\x00\x00\x00\x89'
                     ]
 
         Config = self.Config
-        Config.aes_key('h:e2bee9a36568a00d026a02f85e61e6fb')
+        Config.aes_key(b'h:e2bee9a36568a00d026a02f85e61e6fb')
         Config.ticket_flag('APPEND_CR', True)
         Config.config_flag('STATIC_TICKET', True)
 
         data = Config.to_frame(slot=1).to_feature_reports()
 
-        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
-                                           yubico.yubico_util.hexdump(''.join(data))))
+        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(b''.join(expected)),
+                                           yubico.yubico_util.hexdump(b''.join(data))))
 
         self.assertEqual(data, expected)
 
@@ -57,26 +57,26 @@ class YubiKeyTests(unittest.TestCase):
         #ticket_flags: APPEND_CR
         #config_flags: STATIC_TICKET
 
-        expected = ['\x00\x00\x00\x00\x00\x00\x00\x80',
-                    '\x00\xe2\xbe\xe9\xa3\x65\x68\x83',
-                    '\xa0\x0d\x02\x6a\x02\xf8\x5e\x84',
-                    '\x61\xe6\xfb\x01\x02\x03\x04\x85',
-                    '\x05\x06\x00\x00\x20\x20\x00\x86',
-                    '\x00\x0d\x39\x01\x02\x03\x04\x87',
-                    '\x05\x06\x00\x00\x00\x00\x00\x88',
-                    '\x00\x01\xc2\xfc\x00\x00\x00\x89',
+        expected = [b'\x00\x00\x00\x00\x00\x00\x00\x80',
+                    b'\x00\xe2\xbe\xe9\xa3\x65\x68\x83',
+                    b'\xa0\x0d\x02\x6a\x02\xf8\x5e\x84',
+                    b'\x61\xe6\xfb\x01\x02\x03\x04\x85',
+                    b'\x05\x06\x00\x00\x20\x20\x00\x86',
+                    b'\x00\x0d\x39\x01\x02\x03\x04\x87',
+                    b'\x05\x06\x00\x00\x00\x00\x00\x88',
+                    b'\x00\x01\xc2\xfc\x00\x00\x00\x89',
                     ]
 
         Config = self.Config
-        Config.aes_key('h:e2bee9a36568a00d026a02f85e61e6fb')
+        Config.aes_key(b'h:e2bee9a36568a00d026a02f85e61e6fb')
         Config.ticket_flag('APPEND_CR', True)
         Config.config_flag('STATIC_TICKET', True)
-        Config.unlock_key('h:010203040506')
+        Config.unlock_key(b'h:010203040506')
 
         data = Config.to_frame(slot=1).to_feature_reports()
 
-        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
-                                           yubico.yubico_util.hexdump(''.join(data))))
+        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(b''.join(expected)),
+                                           yubico.yubico_util.hexdump(b''.join(data))))
 
         self.assertEqual(data, expected)
 
@@ -90,56 +90,56 @@ class YubiKeyTests(unittest.TestCase):
         #ticket_flags: APPEND_CR|OATH_HOTP
         #config_flags: OATH_FIXED_MODHEX1|OATH_FIXED_MODHEX2|STATIC_TICKET
 
-        expected = ['\x4d\x4d\x4d\x4d\x00\x00\x00\x80',
-                    '\x00\x52\x3d\x7c\xe7\xe7\xb6\x83',
-                    '\xee\x85\x35\x17\xa3\xe3\xcc\x84',
-                    '\x19\x85\xc7\x00\x00\x00\x00\x85',
-                    '\x00\x00\x04\x00\x60\x70\x00\x86',
-                    '\x00\x72\xad\xaa\xbb\xcc\xdd\x87',
-                    '\xee\xff\x00\x00\x00\x00\x00\x88',
-                    '\x00\x03\xfe\xc4\x00\x00\x00\x89',
+        expected = [b'\x4d\x4d\x4d\x4d\x00\x00\x00\x80',
+                    b'\x00\x52\x3d\x7c\xe7\xe7\xb6\x83',
+                    b'\xee\x85\x35\x17\xa3\xe3\xcc\x84',
+                    b'\x19\x85\xc7\x00\x00\x00\x00\x85',
+                    b'\x00\x00\x04\x00\x60\x70\x00\x86',
+                    b'\x00\x72\xad\xaa\xbb\xcc\xdd\x87',
+                    b'\xee\xff\x00\x00\x00\x00\x00\x88',
+                    b'\x00\x03\xfe\xc4\x00\x00\x00\x89',
                     ]
 
         Config = self.Config
-        Config.aes_key('h:523d7ce7e7b6ee853517a3e3cc1985c7')
-        Config.fixed_string('m:ftftftft')
+        Config.aes_key(b'h:523d7ce7e7b6ee853517a3e3cc1985c7')
+        Config.fixed_string(b'm:ftftftft')
         Config.ticket_flag('APPEND_CR', True)
         Config.ticket_flag('OATH_HOTP', True)
         Config.config_flag('OATH_FIXED_MODHEX1', True)
         Config.config_flag('OATH_FIXED_MODHEX2', True)
         Config.config_flag('STATIC_TICKET', True)
-        Config.unlock_key('h:aabbccddeeff')
-        Config.access_key('h:000000000000')
+        Config.unlock_key(b'h:aabbccddeeff')
+        Config.access_key(b'h:000000000000')
 
         data = Config.to_frame(slot=2).to_feature_reports()
 
-        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
-                                           yubico.yubico_util.hexdump(''.join(data))))
+        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(b''.join(expected)),
+                                           yubico.yubico_util.hexdump(b''.join(data))))
 
         self.assertEqual(data, expected)
 
     def test_challenge_response_hmac_nist(self):
         """ Test HMAC challenge response with NIST test vector """
 
-        expected = ['\x00\x00\x00\x00\x00\x00\x00\x80',
-                    '\x00\x00\x40\x41\x42\x43\x00\x82',
-                    '\x00\x30\x31\x32\x33\x34\x35\x83',
-                    '\x36\x37\x38\x39\x3a\x3b\x3c\x84',
-                    '\x3d\x3e\x3f\x00\x00\x00\x00\x85',
-                    '\x00\x00\x00\x04\x40\x26\x00\x86',
-                    '\x00\x98\x41\x00\x00\x00\x00\x87',
-                    '\x00\x03\x95\x56\x00\x00\x00\x89',
+        expected = [b'\x00\x00\x00\x00\x00\x00\x00\x80',
+                    b'\x00\x00\x40\x41\x42\x43\x00\x82',
+                    b'\x00\x30\x31\x32\x33\x34\x35\x83',
+                    b'\x36\x37\x38\x39\x3a\x3b\x3c\x84',
+                    b'\x3d\x3e\x3f\x00\x00\x00\x00\x85',
+                    b'\x00\x00\x00\x04\x40\x26\x00\x86',
+                    b'\x00\x98\x41\x00\x00\x00\x00\x87',
+                    b'\x00\x03\x95\x56\x00\x00\x00\x89',
                     ]
 
         Config = self.Config
-        secret = 'h:303132333435363738393a3b3c3d3e3f40414243'
+        secret = b'h:303132333435363738393a3b3c3d3e3f40414243'
         Config.mode_challenge_response(secret, type='HMAC', variable=True)
         Config.extended_flag('SERIAL_API_VISIBLE', True)
 
         data = Config.to_frame(slot=2).to_feature_reports()
 
-        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
-                                           yubico.yubico_util.hexdump(''.join(data))))
+        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(b''.join(expected)),
+                                           yubico.yubico_util.hexdump(b''.join(data))))
 
         self.assertEqual(data, expected)
 
@@ -170,98 +170,98 @@ class YubiKeyTests(unittest.TestCase):
     def test_oath_hotp_like_windows(self):
         """ Test plain OATH-HOTP with NIST test vector """
 
-        expected = ['\x00\x00\x00\x00\x00\x00\x00\x80',
-                    '\x00\x00\x40\x41\x42\x43\x00\x82',
-                    '\x00\x30\x31\x32\x33\x34\x35\x83',
-                    '\x36\x37\x38\x39\x3a\x3b\x3c\x84',
-                    '\x3d\x3e\x3f\x00\x00\x00\x00\x85',
-                    '\x00\x00\x00\x00\x40\x00\x00\x86',
-                    '\x00\x6a\xb9\x00\x00\x00\x00\x87',
-                    '\x00\x03\x95\x56\x00\x00\x00\x89',
+        expected = [b'\x00\x00\x00\x00\x00\x00\x00\x80',
+                    b'\x00\x00\x40\x41\x42\x43\x00\x82',
+                    b'\x00\x30\x31\x32\x33\x34\x35\x83',
+                    b'\x36\x37\x38\x39\x3a\x3b\x3c\x84',
+                    b'\x3d\x3e\x3f\x00\x00\x00\x00\x85',
+                    b'\x00\x00\x00\x00\x40\x00\x00\x86',
+                    b'\x00\x6a\xb9\x00\x00\x00\x00\x87',
+                    b'\x00\x03\x95\x56\x00\x00\x00\x89',
                     ]
 
         Config = self.Config
-        secret = 'h:303132333435363738393a3b3c3d3e3f40414243'
+        secret = b'h:303132333435363738393a3b3c3d3e3f40414243'
         Config.mode_oath_hotp(secret)
 
         data = Config.to_frame(slot=2).to_feature_reports()
 
-        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
-                                           yubico.yubico_util.hexdump(''.join(data))))
+        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(b''.join(expected)),
+                                           yubico.yubico_util.hexdump(b''.join(data))))
 
         self.assertEqual(data, expected)
 
     def test_oath_hotp_like_windows2(self):
         """ Test OATH-HOTP with NIST test vector and token identifier """
 
-        expected = ['\x01\x02\x03\x04\x05\x06\x00\x80',
-                    '\x00\x00\x40\x41\x42\x43\x00\x82',
-                    '\x00\x30\x31\x32\x33\x34\x35\x83',
-                    '\x36\x37\x38\x39\x3a\x3b\x3c\x84',
-                    '\x3d\x3e\x3f\x00\x00\x00\x00\x85',
-                    '\x00\x00\x06\x00\x40\x42\x00\x86',
-                    '\x00\x0e\xec\x00\x00\x00\x00\x87',
-                    '\x00\x03\x95\x56\x00\x00\x00\x89',
+        expected = [b'\x01\x02\x03\x04\x05\x06\x00\x80',
+                    b'\x00\x00\x40\x41\x42\x43\x00\x82',
+                    b'\x00\x30\x31\x32\x33\x34\x35\x83',
+                    b'\x36\x37\x38\x39\x3a\x3b\x3c\x84',
+                    b'\x3d\x3e\x3f\x00\x00\x00\x00\x85',
+                    b'\x00\x00\x06\x00\x40\x42\x00\x86',
+                    b'\x00\x0e\xec\x00\x00\x00\x00\x87',
+                    b'\x00\x03\x95\x56\x00\x00\x00\x89',
                     ]
 
         Config = self.Config
-        secret = 'h:303132333435363738393a3b3c3d3e3f40414243'
-        Config.mode_oath_hotp(secret, digits=8, factor_seed='', omp=0x01, tt=0x02, mui='\x03\x04\x05\x06')
+        secret = b'h:303132333435363738393a3b3c3d3e3f40414243'
+        Config.mode_oath_hotp(secret, digits=8, factor_seed='', omp=0x01, tt=0x02, mui=b'\x03\x04\x05\x06')
         Config.config_flag('OATH_FIXED_MODHEX2', True)
 
         data = Config.to_frame(slot=2).to_feature_reports()
 
-        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
-                                           yubico.yubico_util.hexdump(''.join(data))))
+        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(b''.join(expected)),
+                                           yubico.yubico_util.hexdump(b''.join(data))))
 
         self.assertEqual(data, expected)
 
     def test_oath_hotp_like_windows_factory_seed(self):
         """ Test OATH-HOTP factor_seed """
 
-        expected = ['\x01\x02\x03\x04\x05\x06\x00\x80',
-                    '\x00\x00\x40\x41\x42\x43\x01\x82',
-                    '\x21\x30\x31\x32\x33\x34\x35\x83',
-                    '\x36\x37\x38\x39\x3a\x3b\x3c\x84',
-                    '\x3d\x3e\x3f\x00\x00\x00\x00\x85',
-                    '\x00\x00\x06\x00\x40\x42\x00\x86',
-                    '\x00\x03\xea\x00\x00\x00\x00\x87',
-                    '\x00\x03\x95\x56\x00\x00\x00\x89',
+        expected = [b'\x01\x02\x03\x04\x05\x06\x00\x80',
+                    b'\x00\x00\x40\x41\x42\x43\x01\x82',
+                    b'\x21\x30\x31\x32\x33\x34\x35\x83',
+                    b'\x36\x37\x38\x39\x3a\x3b\x3c\x84',
+                    b'\x3d\x3e\x3f\x00\x00\x00\x00\x85',
+                    b'\x00\x00\x06\x00\x40\x42\x00\x86',
+                    b'\x00\x03\xea\x00\x00\x00\x00\x87',
+                    b'\x00\x03\x95\x56\x00\x00\x00\x89',
                     ]
 
         Config = self.Config
-        secret = 'h:303132333435363738393a3b3c3d3e3f40414243'
-        Config.mode_oath_hotp(secret, digits=8, factor_seed=0x2101, omp=0x01, tt=0x02, mui='\x03\x04\x05\x06')
+        secret = b'h:303132333435363738393a3b3c3d3e3f40414243'
+        Config.mode_oath_hotp(secret, digits=8, factor_seed=0x2101, omp=0x01, tt=0x02, mui=b'\x03\x04\x05\x06')
         Config.config_flag('OATH_FIXED_MODHEX2', True)
 
         data = Config.to_frame(slot=2).to_feature_reports()
 
-        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
-                                           yubico.yubico_util.hexdump(''.join(data))))
+        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(b''.join(expected)),
+                                           yubico.yubico_util.hexdump(b''.join(data))))
 
         self.assertEqual(data, expected)
 
     def test_fixed_length_hmac_like_windows(self):
         """ Test fixed length HMAC SHA1 """
 
-        expected = ['\x00\x00\x00\x00\x00\x00\x00\x80',
-                    '\x00\x00\x40\x41\x42\x43\x00\x82',
-                    '\x00\x30\x31\x32\x33\x34\x35\x83',
-                    '\x36\x37\x38\x39\x3a\x3b\x3c\x84',
-                    '\x3d\x3e\x3f\x00\x00\x00\x00\x85',
-                    '\x00\x00\x00\x00\x40\x22\x00\x86',
-                    '\x00\xe9\x0f\x00\x00\x00\x00\x87',
-                    '\x00\x03\x95\x56\x00\x00\x00\x89',
+        expected = [b'\x00\x00\x00\x00\x00\x00\x00\x80',
+                    b'\x00\x00\x40\x41\x42\x43\x00\x82',
+                    b'\x00\x30\x31\x32\x33\x34\x35\x83',
+                    b'\x36\x37\x38\x39\x3a\x3b\x3c\x84',
+                    b'\x3d\x3e\x3f\x00\x00\x00\x00\x85',
+                    b'\x00\x00\x00\x00\x40\x22\x00\x86',
+                    b'\x00\xe9\x0f\x00\x00\x00\x00\x87',
+                    b'\x00\x03\x95\x56\x00\x00\x00\x89',
                     ]
 
         Config = self.Config
-        secret = 'h:303132333435363738393a3b3c3d3e3f40414243'
+        secret = b'h:303132333435363738393a3b3c3d3e3f40414243'
         Config.mode_challenge_response(secret, type='HMAC', variable=False)
 
         data = Config.to_frame(slot=2).to_feature_reports()
 
-        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
-                                           yubico.yubico_util.hexdump(''.join(data))))
+        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(b''.join(expected)),
+                                           yubico.yubico_util.hexdump(b''.join(data))))
 
         self.assertEqual(data, expected)
 
@@ -292,14 +292,14 @@ class YubiKeyTests(unittest.TestCase):
         capa = yubico.yubikey_usb_hid.YubiKeyUSBHIDCapabilities( \
             model = 'YubiKey', version = version, default_answer = False)
         Config = YubiKeyConfigUSBHID(ykver = version, capabilities = capa)
-        secret = 'h:303132333435363738393a3b3c3d3e3f40414243'
+        secret = b'h:303132333435363738393a3b3c3d3e3f40414243'
         self.assertRaises(yubico.yubikey.YubiKeyVersionError, Config.mode_challenge_response, secret)
 
     def test_version_required_5(self):
         """ Test YubiKey 2.2 with v2.2 mode """
 
         Config = self.Config
-        secret = 'h:303132333435363738393a3b3c3d3e3f'
+        secret = b'h:303132333435363738393a3b3c3d3e3f'
         Config.mode_challenge_response(secret, type='OTP')
         self.assertEqual('CHAL_RESP', Config._mode)
 

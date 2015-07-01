@@ -17,6 +17,7 @@ __all__ = [
 
 from .yubico_version import __version__
 
+import sys
 import struct
 import binascii
 from . import yubico_util
@@ -118,16 +119,16 @@ class YubiKeyConfig():
         self.yk_req_version = (0, 0)
         self.ykver = ykver
 
-        self.fixed = ''
-        self.uid = ''
-        self.key = ''
-        self.access_code = ''
+        self.fixed = b''
+        self.uid = b''
+        self.key = b''
+        self.access_code = b''
 
         self.ticket_flags = YubiKeyConfigBits(0x0)
         self.config_flags = YubiKeyConfigBits(0x0)
         self.extended_flags = YubiKeyConfigBits(0x0)
 
-        self.unlock_code = ''
+        self.unlock_code = b''
         self._mode = ''
         if update or swap:
             self._require_version(major=2, minor=3)
@@ -233,10 +234,10 @@ class YubiKeyConfig():
         """
         Access code to allow re-programming of your YubiKey.
 
-        Supply data as either a raw string, or a hexlified string prefixed by 'h:'.
+        Supply data as either a raw bytestring, or a hexlified bytestring prefixed by 'h:'.
         The result, after any hex decoding, must be 6 bytes.
         """
-        if data.startswith('h:'):
+        if data.startswith(b'h:'):
             new = binascii.unhexlify(data[2:])
         else:
             new = data
@@ -256,7 +257,7 @@ class YubiKeyConfig():
         Supply data as either a raw string, or a hexlified string prefixed by 'h:'.
         The result, after any hex decoding, must be 6 bytes.
         """
-        if data.startswith('h:'):
+        if data.startswith(b'h:'):
             new = binascii.unhexlify(data[2:])
         else:
             new = data
@@ -272,7 +273,7 @@ class YubiKeyConfig():
         if not self.capabilities.have_yubico_OTP():
             raise yubikey_base.YubiKeyVersionError('Yubico OTP not available in %s version %d.%d' \
                                                    % (self.capabilities.model, self.ykver[0], self.ykver[1]))
-        if private_uid.startswith('h:'):
+        if private_uid.startswith(b'h:'):
             private_uid = binascii.unhexlify(private_uid[2:])
         if len(private_uid) != yubikey_defs.UID_SIZE:
             raise yubico_exception.InputError('Private UID must be %i bytes' % (yubikey_defs.UID_SIZE))
@@ -299,7 +300,7 @@ class YubiKeyConfig():
             self.config_flag('OATH_HOTP8', True)
         if omp or tt or mui:
             decoded_mui = self._decode_input_string(mui)
-            fixed = chr(omp) + chr(tt) + decoded_mui
+            fixed = yubico_util.chr_byte(omp) + yubico_util.chr_byte(tt) + decoded_mui
             self.fixed_string(fixed)
         if factor_seed:
             self.uid = self.uid + struct.pack('<H', factor_seed)
@@ -405,7 +406,7 @@ class YubiKeyConfig():
 
     def to_string(self):
         """
-        Return the current configuration as a string (always 64 bytes).
+        Return the current configuration as a bytestring (always 64 bytes).
         """
         #define UID_SIZE		6	/* Size of secret ID field */
         #define FIXED_SIZE              16      /* Max size of fixed field */
@@ -449,7 +450,7 @@ class YubiKeyConfig():
         Return the current configuration as a YubiKeyFrame object.
         """
         data = self.to_string()
-        payload = data.ljust(64, chr(0x0))
+        payload = data.ljust(64, yubico_util.chr_byte(0x0))
         if slot is 1:
             if self._update_config:
                 command = SLOT_UPDATE1
@@ -478,9 +479,11 @@ class YubiKeyConfig():
             self.yk_req_version = new_ver
 
     def _decode_input_string(self, data):
-        if data.startswith('m:'):
-            data = 'h:' + yubico_util.modhex_decode(data[2:])
-        if data.startswith('h:'):
+        if sys.version_info >= (3, 0) and isinstance(data, str):
+            data = data.encode('ascii')
+        if data.startswith(b'm:'):
+            data = b'h:' + yubico_util.modhex_decode(data[2:])
+        if data.startswith(b'h:'):
             return(binascii.unhexlify(data[2:]))
         else:
             return(data)
@@ -503,10 +506,10 @@ class YubiKeyConfig():
         """
         Set a 20 bytes key. This is used in CHAL_HMAC and OATH_HOTP mode.
 
-        Supply data as either a raw string, or a hexlified string prefixed by 'h:'.
+        Supply data as either a raw bytestring, or a hexlified bytestring prefixed by 'h:'.
         The result, after any hex decoding, must be 20 bytes.
         """
-        if data.startswith('h:'):
+        if data.startswith(b'h:'):
             new = binascii.unhexlify(data[2:])
         else:
             new = data

@@ -248,16 +248,16 @@ class YubiKeyUSBHID(YubiKey):
                 raise yubico_exception.InputError('Mode HMAC challenge too big (%i/%i)' \
                                                       % (yubikey_defs.SHA1_MAX_BLOCK_SIZE, len(challenge)))
             if len(challenge) < yubikey_defs.SHA1_MAX_BLOCK_SIZE:
-                pad_with = chr(0x0)
-                if variable and challenge[-1] == pad_with:
-                    pad_with = chr(0xff)
+                pad_with = b'\0'
+                if variable and challenge[-1:] == pad_with:
+                    pad_with = b'\xff'
                 challenge = challenge.ljust(yubikey_defs.SHA1_MAX_BLOCK_SIZE, pad_with)
             response_len = yubikey_defs.SHA1_DIGEST_SIZE
         elif mode == 'OTP':
             if len(challenge) != yubikey_defs.UID_SIZE:
                 raise yubico_exception.InputError('Mode OTP challenge must be %i bytes (got %i)' \
                                                       % (yubikey_defs.UID_SIZE, len(challenge)))
-            challenge = challenge.ljust(yubikey_defs.SHA1_MAX_BLOCK_SIZE, chr(0x0))
+            challenge = challenge.ljust(yubikey_defs.SHA1_MAX_BLOCK_SIZE, b'\0')
             response_len = 16
         else:
             raise yubico_exception.InputError('Invalid mode supplied (%s, valid values are HMAC and OTP)' \
@@ -297,7 +297,7 @@ class YubiKeyUSBHID(YubiKey):
         # continue reading while response pending is set
         while True:
             this = self._read()
-            flags = ord(this[7])
+            flags = yubico_util.ord_byte(this[7])
             if flags & yubikey_defs.RESP_PENDING_FLAG:
                 seq = flags & 0b00011111
                 if res and (seq == 0):
@@ -321,7 +321,7 @@ class YubiKeyUSBHID(YubiKey):
             self._debug("Failed reading %i bytes (got %i) from USB HID YubiKey.\n"
                         % (_FEATURE_RPT_SIZE, recv))
             raise YubiKeyUSBHIDError('Failed reading from USB HID YubiKey')
-        data = ''.join(chr(c) for c in recv)
+        data = b''.join(yubico_util.chr_byte(c) for c in recv)
         self._debug("READ  : %s" % (yubico_util.hexdump(data, colorize=True)))
         return data
 
@@ -344,7 +344,7 @@ class YubiKeyUSBHID(YubiKey):
         """
         Reset read mode by issuing a dummy write.
         """
-        data = '\x00\x00\x00\x00\x00\x00\x00\x8f'
+        data = b'\x00\x00\x00\x00\x00\x00\x00\x8f'
         self._raw_write(data)
         self._waitfor_clear(yubikey_defs.SLOT_WRITE_FLAG)
         return True
@@ -401,7 +401,7 @@ class YubiKeyUSBHID(YubiKey):
         resp_timeout = False    # YubiKey hasn't indicated RESP_TIMEOUT (yet)
         while not finished:
             this = self._read()
-            flags = ord(this[7])
+            flags = yubico_util.ord_byte(this[7])
 
             if flags & yubikey_defs.RESP_TIMEOUT_WAIT_FLAG:
                 if not resp_timeout:

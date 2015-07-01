@@ -28,11 +28,13 @@ class YubiKeyFrame:
     flags.
     """
 
-    def __init__(self, command, payload=''):
-        if payload is '':
-            payload = '\x00' * 64
+    def __init__(self, command, payload=b''):
+        if not payload:
+            payload = b'\x00' * 64
         if len(payload) != 64:
             raise yubico_exception.InputError('payload must be empty or 64 bytes')
+        if not isinstance(payload, bytes):
+            raise yubico_exception.InputError('payload must be a bytestring')
         self.payload = payload
         self.command = command
         self.crc = yubico_util.crc16(payload)
@@ -59,7 +61,7 @@ class YubiKeyFrame:
         #     unsigned short crc;
         #     unsigned char filler[3];
         # } YKFRAME;
-        filler = ''
+        filler = b''
         return struct.pack('<64sBH3s',
                            self.payload, self.command, self.crc, filler)
 
@@ -77,11 +79,11 @@ class YubiKeyFrame:
             this, rest = rest[:7], rest[7:]
             if seq > 0 and rest:
                 # never skip first or last serie
-                if this != '\x00\x00\x00\x00\x00\x00\x00':
-                    this += chr(yubikey_defs.SLOT_WRITE_FLAG + seq)
+                if this != b'\x00\x00\x00\x00\x00\x00\x00':
+                    this += yubico_util.chr_byte(yubikey_defs.SLOT_WRITE_FLAG + seq)
                     out.append(self._debug_string(debug, this))
             else:
-                this += chr(yubikey_defs.SLOT_WRITE_FLAG + seq)
+                this += yubico_util.chr_byte(yubikey_defs.SLOT_WRITE_FLAG + seq)
                 out.append(self._debug_string(debug, this))
             seq += 1
         return out

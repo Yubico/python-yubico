@@ -17,7 +17,7 @@ class YubiKeyTests(unittest.TestCase):
     self.assertEqual(len(buffer), 70, "yubikey command buffer should always be 70 bytes")
 
     # check that empty payload works (64 * '\x00')
-    all_zeros = '\x00' * 64
+    all_zeros = b'\x00' * 64
 
     self.assertTrue(buffer.startswith(all_zeros))
 
@@ -26,25 +26,25 @@ class YubiKeyTests(unittest.TestCase):
     """ Test normal use """
     res = YubiKeyFrame(command=0x32).to_feature_reports()
 
-    self.assertEqual(res, ['\x00\x00\x00\x00\x00\x00\x00\x80',
-                           '\x00\x32\x6b\x5b\x00\x00\x00\x89'
+    self.assertEqual(res, [b'\x00\x00\x00\x00\x00\x00\x00\x80',
+                           b'\x00\x32\x6b\x5b\x00\x00\x00\x89'
                            ])
 
 
   def test_get_ykframe_feature_reports2(self):
     """ Test one serie of non-zero bytes in the middle of the payload """
-    payload = '\x00' * 38
-    payload += '\x01\x02\x03'
-    payload += '\x00' * 23
+    payload = b'\x00' * 38
+    payload += b'\x01\x02\x03'
+    payload += b'\x00' * 23
     res = YubiKeyFrame(command=0x32, payload=payload).to_feature_reports()
 
-    self.assertEqual(res, ['\x00\x00\x00\x00\x00\x00\x00\x80',
-                           '\x00\x00\x00\x01\x02\x03\x00\x85',
-                           '\x002\x01s\x00\x00\x00\x89'])
+    self.assertEqual(res, [b'\x00\x00\x00\x00\x00\x00\x00\x80',
+                           b'\x00\x00\x00\x01\x02\x03\x00\x85',
+                           b'\x002\x01s\x00\x00\x00\x89'])
 
   def test_bad_payload(self):
     """ Test that we get an exception for four bytes payload """
-    self.assertRaises(yubico_exception.InputError, YubiKeyFrame, command=0x32, payload='test')
+    self.assertRaises(yubico_exception.InputError, YubiKeyFrame, command=0x32, payload=b'test')
 
   def test_repr(self):
     """ Test string representation of object """
