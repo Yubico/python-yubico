@@ -22,7 +22,7 @@ __all__ = [
     'YubiKeyTimeout',
 ]
 
-from yubico_version import __version__
+from .yubico_version import __version__
 
 class YubicoError(Exception):
     """

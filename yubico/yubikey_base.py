@@ -4,8 +4,8 @@ module for Yubikey base classes
 # Copyright (c) 2010, 2011, 2012 Yubico AB
 # See the file COPYING for licence statement.
 
-from yubico_version  import __version__
-import yubico_exception
+from .yubico_version  import __version__
+from . import yubico_exception
 
 class YubiKeyError(yubico_exception.YubicoError):
     """

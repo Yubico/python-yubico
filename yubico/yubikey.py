@@ -31,10 +31,10 @@ __all__ = [
     'YubiKeyTimeout',
 ]
 
-from yubico_version  import __version__
-from yubikey_base import YubiKeyError, YubiKeyTimeout, YubiKeyVersionError, YubiKeyCapabilities, YubiKey
-from yubikey_usb_hid import YubiKeyUSBHID, YubiKeyUSBHIDError
-from yubikey_neo_usb_hid import YubiKeyNEO_USBHID, YubiKeyNEO_USBHIDError
+from .yubico_version  import __version__
+from .yubikey_base import YubiKeyError, YubiKeyTimeout, YubiKeyVersionError, YubiKeyCapabilities, YubiKey
+from .yubikey_usb_hid import YubiKeyUSBHID, YubiKeyUSBHIDError
+from .yubikey_neo_usb_hid import YubiKeyNEO_USBHID, YubiKeyNEO_USBHIDError
 
 def find_key(debug=False, skip=0):
     """

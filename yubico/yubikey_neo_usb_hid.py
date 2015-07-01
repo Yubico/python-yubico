@@ -16,10 +16,10 @@ __all__ = [
 
 import struct
 
-from yubico_version import __version__
-import yubikey_usb_hid
-import yubikey_frame
-import yubico_exception
+from .yubico_version import __version__
+from . import yubikey_usb_hid
+from . import yubikey_frame
+from . import yubico_exception
 
 # commands from ykdef.h
 _SLOT_NDEF		= 0x08 # Write YubiKey NEO NDEF

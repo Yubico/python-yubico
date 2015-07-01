@@ -18,10 +18,10 @@ class TestYubiKeyUSBHID(unittest.TestCase):
         """ Test connecting to the YubiKey """
         if self.YK is None:
             try:
-                print "open key"
+                print("open key")
                 self.YK = YubiKeyUSBHID()
                 return
-            except YubiKeyUSBHIDError, err:
+            except YubiKeyUSBHIDError as err:
                 self.fail("No YubiKey connected (?) : %s" % str(err))
 
     def tearDown(self):
@@ -33,7 +33,7 @@ class TestYubiKeyUSBHID(unittest.TestCase):
         """ Test the simplest form of communication : a status read request """
         status = self.YK.status()
         version = self.YK.version()
-        print "Version returned: %s" % version
+        print("Version returned: %s" % version)
         re_match = re.match("\d+\.\d+\.\d+$", version)
         self.assertNotEqual(re_match, None)
 
@@ -49,7 +49,7 @@ class TestYubiKeyUSBHID(unittest.TestCase):
     def test_serial(self):
         """ Test serial number retrieval (requires YubiKey 2) """
         serial = self.YK.serial()
-        print "Serial returned : %s" % serial
+        print("Serial returned : %s" % serial)
         self.assertEqual(type(serial), type(1))
 
 if __name__ == '__main__':

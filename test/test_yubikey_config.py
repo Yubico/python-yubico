@@ -41,8 +41,8 @@ class YubiKeyTests(unittest.TestCase):
 
         data = Config.to_frame(slot=1).to_feature_reports()
 
-        print "EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
-                                           yubico.yubico_util.hexdump(''.join(data)))
+        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
+                                           yubico.yubico_util.hexdump(''.join(data))))
 
         self.assertEqual(data, expected)
 
@@ -75,8 +75,8 @@ class YubiKeyTests(unittest.TestCase):
 
         data = Config.to_frame(slot=1).to_feature_reports()
 
-        print "EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
-                                           yubico.yubico_util.hexdump(''.join(data)))
+        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
+                                           yubico.yubico_util.hexdump(''.join(data))))
 
         self.assertEqual(data, expected)
 
@@ -113,8 +113,8 @@ class YubiKeyTests(unittest.TestCase):
 
         data = Config.to_frame(slot=2).to_feature_reports()
 
-        print "EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
-                                           yubico.yubico_util.hexdump(''.join(data)))
+        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
+                                           yubico.yubico_util.hexdump(''.join(data))))
 
         self.assertEqual(data, expected)
 
@@ -138,8 +138,8 @@ class YubiKeyTests(unittest.TestCase):
 
         data = Config.to_frame(slot=2).to_feature_reports()
 
-        print "EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
-                                           yubico.yubico_util.hexdump(''.join(data)))
+        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
+                                           yubico.yubico_util.hexdump(''.join(data))))
 
         self.assertEqual(data, expected)
 
@@ -186,8 +186,8 @@ class YubiKeyTests(unittest.TestCase):
 
         data = Config.to_frame(slot=2).to_feature_reports()
 
-        print "EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
-                                           yubico.yubico_util.hexdump(''.join(data)))
+        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
+                                           yubico.yubico_util.hexdump(''.join(data))))
 
         self.assertEqual(data, expected)
 
@@ -211,8 +211,8 @@ class YubiKeyTests(unittest.TestCase):
 
         data = Config.to_frame(slot=2).to_feature_reports()
 
-        print "EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
-                                           yubico.yubico_util.hexdump(''.join(data)))
+        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
+                                           yubico.yubico_util.hexdump(''.join(data))))
 
         self.assertEqual(data, expected)
 
@@ -236,8 +236,8 @@ class YubiKeyTests(unittest.TestCase):
 
         data = Config.to_frame(slot=2).to_feature_reports()
 
-        print "EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
-                                           yubico.yubico_util.hexdump(''.join(data)))
+        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
+                                           yubico.yubico_util.hexdump(''.join(data))))
 
         self.assertEqual(data, expected)
 
@@ -260,8 +260,8 @@ class YubiKeyTests(unittest.TestCase):
 
         data = Config.to_frame(slot=2).to_feature_reports()
 
-        print "EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
-                                           yubico.yubico_util.hexdump(''.join(data)))
+        print("EXPECT:\n%s\nGOT:\n%s\n" %( yubico.yubico_util.hexdump(''.join(expected)),
+                                           yubico.yubico_util.hexdump(''.join(data))))
 
         self.assertEqual(data, expected)
 

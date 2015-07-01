@@ -13,10 +13,10 @@ __all__ = [
 
 import struct
 
-import yubico_util
-import yubikey_defs
-import yubico_exception
-from yubico_version import __version__
+from . import yubico_util
+from . import yubikey_defs
+from . import yubico_exception
+from .yubico_version import __version__
 
 class YubiKeyFrame:
     """

@@ -15,20 +15,20 @@ __all__ = [
     'YubiKeyConfig',
 ]
 
-from yubico_version import __version__
+from .yubico_version import __version__
 
 import struct
 import binascii
-import yubico_util
-import yubikey_defs
-import yubikey_frame
-import yubico_exception
-import yubikey_config_util
-from yubikey_config_util import YubiKeyConfigBits, YubiKeyConfigFlag, YubiKeyExtendedFlag, YubiKeyTicketFlag
-import yubikey_base
+from . import yubico_util
+from . import yubikey_defs
+from . import yubikey_frame
+from . import yubico_exception
+from . import yubikey_config_util
+from .yubikey_config_util import YubiKeyConfigBits, YubiKeyConfigFlag, YubiKeyExtendedFlag, YubiKeyTicketFlag
+from . import yubikey_base
 
 # these used to be defined here; import them for backwards compatibility
-from yubikey_defs import SLOT_CONFIG, SLOT_CONFIG2, SLOT_UPDATE1, SLOT_UPDATE2, SLOT_SWAP, command2str
+from .yubikey_defs import SLOT_CONFIG, SLOT_CONFIG2, SLOT_UPDATE1, SLOT_UPDATE2, SLOT_SWAP, command2str
 
 
 TicketFlags = [

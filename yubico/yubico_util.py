@@ -15,9 +15,9 @@ __all__ = [
     # classes
 ]
 
-from yubico_version import __version__
-import yubikey_defs
-import yubico_exception
+from .yubico_version import __version__
+from . import yubikey_defs
+from . import yubico_exception
 import string
 
 _CRC_OK_RESIDUAL = 0xf0b8
@@ -101,7 +101,7 @@ def hexdump(src, length=8, colorize=False):
 
 def group(data, num):
     """ Split data into chunks of num chars each """
-    return [data[i:i+num] for i in xrange(0, len(data), num)]
+    return [data[i:i+num] for i in range(0, len(data), num)]
 
 def modhex_decode(data):
     """ Convert a modhex string to ordinary hex. """

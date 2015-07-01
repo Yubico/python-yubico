@@ -50,7 +50,7 @@ class YubiKeyTests(unittest.TestCase):
     """ Test string representation of object """
     # to achieve 100% test coverage ;)
     frame = YubiKeyFrame(command=0x4d)
-    print "Frame is represented as %s" % frame
+    print("Frame is represented as %s" % frame)
     re_match = re.search("YubiKeyFrame instance at .*: 77.$", str(frame))
     self.assertNotEqual(re_match, None)
 

@@ -14,15 +14,15 @@ __all__ = [
   'YubiKeyUSBHIDStatus',
 ]
 
-from yubico_version import __version__
+from .yubico_version import __version__
 
-import yubico_util
-import yubico_exception
-import yubikey_frame
-import yubikey_config
-import yubikey_defs
-import yubikey_base
-from yubikey_base import YubiKey
+from . import yubico_util
+from . import yubico_exception
+from . import yubikey_frame
+from . import yubikey_config
+from . import yubikey_defs
+from . import yubikey_base
+from .yubikey_base import YubiKey
 import struct
 import time
 import sys
@@ -455,7 +455,7 @@ class YubiKeyUSBHID(YubiKey):
         try:
             self._usb_handle = usb_device.open()
             self._usb_handle.detachKernelDriver(0)
-        except Exception, error:
+        except Exception as error:
             if 'could not detach kernel driver from interface' in str(error):
                 self._debug('The in-kernel-HID driver has already been detached\n')
             else:
