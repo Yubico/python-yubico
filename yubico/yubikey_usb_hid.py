@@ -280,7 +280,7 @@ class YubiKeyUSBHID(YubiKey):
         old_pgm_seq = self._status.pgm_seq
         frame = cfg.to_frame(slot=slot)
         self._debug("Writing %s frame :\n%s\n" % \
-                        (yubikey_config.command2str(frame.command), cfg))
+                        (yubikey_defs.command2str(frame.command), cfg))
         self._write(frame)
         self._waitfor_clear(yubikey_defs.SLOT_WRITE_FLAG)
         # make sure we have a fresh pgm_seq value

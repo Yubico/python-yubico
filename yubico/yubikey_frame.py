@@ -16,7 +16,6 @@ import struct
 import yubico_util
 import yubikey_defs
 import yubico_exception
-import yubikey_config
 from yubico_version import __version__
 
 class YubiKeyFrame:
@@ -93,13 +92,13 @@ class YubiKeyFrame:
         """
         if not debug:
             return data
-        if self.command in [yubikey_config.SLOT_CONFIG,
-                            yubikey_config.SLOT_CONFIG2,
-                            yubikey_config.SLOT_UPDATE1,
-                            yubikey_config.SLOT_UPDATE2,
-                            yubikey_config.SLOT_SWAP,
+        if self.command in [yubikey_defs.SLOT_CONFIG,
+                            yubikey_defs.SLOT_CONFIG2,
+                            yubikey_defs.SLOT_UPDATE1,
+                            yubikey_defs.SLOT_UPDATE2,
+                            yubikey_defs.SLOT_SWAP,
                             ]:
-            # annotate according to config_st (see yubikey_config.to_string())
+            # annotate according to config_st (see yubikey_defs.to_string())
             if ord(data[-1]) == 0x80:
                 return (data, "FFFFFFF")
             if ord(data[-1]) == 0x81:

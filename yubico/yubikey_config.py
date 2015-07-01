@@ -27,6 +27,10 @@ import yubikey_config_util
 from yubikey_config_util import YubiKeyConfigBits, YubiKeyConfigFlag, YubiKeyExtendedFlag, YubiKeyTicketFlag
 import yubikey
 
+# these used to be defined here; import them for backwards compatibility
+from yubikey_defs import SLOT_CONFIG, SLOT_CONFIG2, SLOT_UPDATE1, SLOT_UPDATE2, SLOT_SWAP, command2str
+
+
 TicketFlags = [
     YubiKeyTicketFlag('TAB_FIRST',		0x01, min_ykver=(1, 0), doc='Send TAB before first part'),
     YubiKeyTicketFlag('APPEND_TAB1',		0x02, min_ykver=(1, 0), doc='Send TAB after first part'),
@@ -78,24 +82,6 @@ ExtendedFlags = [
     YubiKeyExtendedFlag('ALLOW_UPDATE',		0x20, min_ykver=(2, 3), doc='Allow update of existing configuration (selected flags + access code)'),
     YubiKeyExtendedFlag('DORMANT',		0x40, min_ykver=(2, 3), doc='Dormant configuration (can be woken up and flag removed = requires update flag)'),
     ]
-
-SLOT_CONFIG			= 0x01	# First (default / V1) configuration
-SLOT_CONFIG2			= 0x03	# Second (V2) configuration
-SLOT_UPDATE1			= 0x04	# Update slot 1
-SLOT_UPDATE2			= 0x05	# Update slot 2
-SLOT_SWAP			= 0x06	# Swap slot 1 and 2
-
-def command2str(num):
-    """ Turn command number into name """
-    known = {0x01: "SLOT_CONFIG",
-             0x03: "SLOT_CONFIG2",
-             0x04: "SLOT_UPDATE1",
-             0x05: "SLOT_UPDATE2",
-             0x06: "SLOT_SWAP",
-             }
-    if num in known:
-        return known[num]
-    return "0x%02x" % (num)
 
 class YubiKeyConfigError(yubico_exception.YubicoError):
     """
