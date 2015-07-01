@@ -14,7 +14,7 @@ __all__ = [
   'YubiKeyUSBHIDStatus',
 ]
 
-from yubico import __version__
+from yubico_version import __version__
 
 import yubico_util
 import yubico_exception

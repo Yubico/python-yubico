@@ -10,7 +10,7 @@ VERSION_PATTERN = re.compile(r"(?m)^__version__\s*=\s*['\"](.+)['\"]$")
 def get_version():
     """Return the current version as defined by yubico/__init__.py."""
 
-    with open('yubico/__init__.py', 'r') as f:
+    with open('yubico/yubico_version.py', 'r') as f:
         match = VERSION_PATTERN.search(f.read())
         return match.group(1)
 

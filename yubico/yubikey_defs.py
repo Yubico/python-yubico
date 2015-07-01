@@ -18,7 +18,7 @@ __all__ = [
     # classes
 ]
 
-from yubico import __version__
+from yubico_version import __version__
 
 # Yubikey Low level interface #2.3
 RESP_TIMEOUT_WAIT_MASK	= 0x1f # Mask to get timeout value

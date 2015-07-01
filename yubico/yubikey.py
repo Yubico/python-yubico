@@ -31,7 +31,7 @@ __all__ = [
     'YubiKeyTimeout',
 ]
 
-from yubico  import __version__
+from yubico_version  import __version__
 import yubico_exception
 
 class YubiKeyError(yubico_exception.YubicoError):

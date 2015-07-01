@@ -16,7 +16,7 @@ __all__ = [
 
 import struct
 
-from yubico import __version__
+from yubico_version import __version__
 import yubikey_usb_hid
 import yubikey_frame
 import yubico_exception

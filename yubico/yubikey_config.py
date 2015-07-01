@@ -15,7 +15,7 @@ __all__ = [
     'YubiKeyConfig',
 ]
 
-from yubico import __version__
+from yubico_version import __version__
 
 import struct
 import binascii

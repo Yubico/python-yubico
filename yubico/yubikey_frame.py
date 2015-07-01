@@ -17,7 +17,7 @@ import yubico_util
 import yubikey_defs
 import yubico_exception
 import yubikey_config
-from yubico import __version__
+from yubico_version import __version__
 
 class YubiKeyFrame:
     """
