@@ -16,10 +16,11 @@ __all__ = [
 
 import struct
 
-from yubico import __version__
-import yubikey_usb_hid
-import yubikey_frame
-import yubico_exception
+from .yubico_version import __version__
+from . import yubikey_usb_hid
+from . import yubikey_frame
+from . import yubico_exception
+from . import yubico_util
 
 # commands from ykdef.h
 _SLOT_NDEF		= 0x08 # Write YubiKey NEO NDEF
@@ -127,11 +128,11 @@ class YubiKeyNEO_NDEF():
 
     ndef_type = _NDEF_URI_TYPE
     ndef_str = None
-    access_code = chr(0x0) * _ACC_CODE_SIZE
+    access_code = yubico_util.chr_byte(0x0) * _ACC_CODE_SIZE
     # For _NDEF_URI_TYPE
     ndef_uri_rt = 0x0  # No prepending
     # For _NDEF_TEXT_TYPE
-    ndef_text_lang = 'en'
+    ndef_text_lang = b'en'
     ndef_text_enc = 'UTF-8'
 
     def __init__(self, data, access_code = None):
@@ -199,7 +200,7 @@ class YubiKeyNEO_NDEF():
         Return the current configuration as a YubiKeyFrame object.
         """
         data = self.to_string()
-        payload = data.ljust(64, chr(0x0))
+        payload = data.ljust(64, b'\0')
         return yubikey_frame.YubiKeyFrame(command = slot, payload = payload)
 
     def _encode_ndef_uri_type(self, data):
@@ -211,11 +212,11 @@ class YubiKeyNEO_NDEF():
         """
         t = 0x0
         for (code, prefix) in uri_identifiers:
-            if data[:len(prefix)].lower() == prefix:
+            if data[:len(prefix)].decode('latin-1').lower() == prefix:
                 t = code
                 data = data[len(prefix):]
                 break
-        data = chr(t) + data
+        data = yubico_util.chr_byte(t) + data
         return data
 
     def _encode_ndef_text_params(self, data):
@@ -226,4 +227,4 @@ class YubiKeyNEO_NDEF():
         status = len(self.ndef_text_lang)
         if self.ndef_text_enc == 'UTF16':
             status = status & 0b10000000
-        return chr(status) + self.ndef_text_lang + data
+        return yubico_util.chr_byte(status) + self.ndef_text_lang + data

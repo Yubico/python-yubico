@@ -20,7 +20,7 @@ yubikey_config module.
 # Copyright (c) 2010, 2011, 2012 Yubico AB
 # See the file COPYING for licence statement.
 
-__version__ = "1.2.3"
+from .yubico_version import __version__
 
 __all__ = [
     # classes
@@ -40,5 +40,5 @@ __all__ = [
     ]
 
 # to not have to import yubico.yubikey
-from yubikey import YubiKey
-from yubikey import find_key as find_yubikey
+from .yubikey import YubiKey
+from .yubikey import find_key as find_yubikey
