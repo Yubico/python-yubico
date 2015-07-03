@@ -22,8 +22,10 @@ import json
 import hmac
 import argparse
 import hashlib
+import binascii
 
 import yubico
+import six
 
 from Crypto.Cipher import AES
 
@@ -70,10 +72,10 @@ def parse_args():
 
 def init_demo(args):
     """ Initializes the demo by asking a few questions and creating a new stat file. """
-    hmac_key = raw_input("Enter HMAC-SHA1 key as 40 chars of hex (or press enter for random key) : ")
+    hmac_key = six.moves.input("Enter HMAC-SHA1 key as 40 chars of hex (or press enter for random key) : ")
     if hmac_key:
         try:
-            hmac_key = hmac_key.decode('hex')
+            hmac_key = binascii.unhexlify(hmac_key)
         except:
             sys.stderr.write("Could not decode HMAC-SHA1 key. Please enter 40 hex-chars.\n")
             sys.exit(1)
@@ -83,12 +85,12 @@ def init_demo(args):
         sys.stderr.write("Decoded HMAC-SHA1 key is %i bytes, expected 20.\n" %( len(hmac_key)))
         sys.exit(1)
 
-    print "To program a YubiKey >= 2.2 for challenge-response with this key, use :"
-    print ""
-    print "  $ ykpersonalize -%i -ochal-resp -ochal-hmac -ohmac-lt64 -a %s" % (args.slot, hmac_key.encode('hex'))
-    print ""
+    print("To program a YubiKey >= 2.2 for challenge-response with this key, use :")
+    print("")
+    print("  $ ykpersonalize -%i -ochal-resp -ochal-hmac -ohmac-lt64 -a %s" % (args.slot, binascii.hexlify(hmac_key).decode('ascii')))
+    print("")
 
-    passphrase = raw_input("Enter the secret passphrase to protect with the rolling challenges : ")
+    passphrase = six.moves.input("Enter the secret passphrase to protect with the rolling challenges : ")
 
     secret_dict = {"count": 0,
                    "passphrase": passphrase,
@@ -99,81 +101,84 @@ def do_challenge(args):
     """ Send a challenge to the YubiKey and use the result to decrypt the state file. """
     outer_j = load_state_file(args)
     challenge = outer_j["challenge"]
-    print "Challenge : %s" % (challenge)
-    response = get_yubikey_response(args, outer_j["challenge"].decode('hex'))
+    print("Challenge : %s" % (challenge))
+    response = get_yubikey_response(args, binascii.unhexlify(outer_j["challenge"]))
     if args.debug or args.verbose:
-        print "\nGot %i bytes response %s\n" % (len(response), response.encode('hex'))
+        print("\nGot %i bytes response %s\n" % (len(response), binascii.hexlify(response)))
     else:
-        print "Response  : %s" % (response.encode('hex'))
+        print("Response  : %s" % binascii.hexlify(response))
     inner_j = decrypt_with_response(args, outer_j["inner"], response)
     if args.verbose or args.debug:
-        print "\nDecrypted 'inner' :\n%s\n" % (inner_j)
+        print("\nDecrypted 'inner' :\n%s\n" % (inner_j))
 
     secret_dict = {}
     try:
-        secret_dict = json.loads(inner_j)
+        secret_dict = json.loads(inner_j.decode('ascii'))
     except ValueError:
         sys.stderr.write("\nCould not parse decoded data as JSON, you probably did not produce the right response.\n")
         sys.exit(1)
 
     secret_dict["count"] += 1
 
-    print "\nThe passphrase protected using rolling challenges is :\n"
-    print "\t%s\n\nAccessed %i times.\n" % (secret_dict["passphrase"], secret_dict["count"])
-    roll_next_challenge(args, secret_dict["hmac_key"].decode('hex'), secret_dict)
+    print("\nThe passphrase protected using rolling challenges is :\n")
+    print("\t%s\n\nAccessed %i times.\n" % (secret_dict["passphrase"], secret_dict["count"]))
+    roll_next_challenge(args, binascii.unhexlify(secret_dict["hmac_key"]), secret_dict)
 
 def get_yubikey_response(args, challenge):
     """
     Do challenge-response with the YubiKey if one is found. Otherwise prompt user to fake a response. """
     try:
         YK = yubico.find_yubikey(debug = args.debug)
-        response = YK.challenge_response(challenge.ljust(64, chr(0x0)), slot = args.slot)
+        response = YK.challenge_response(challenge.ljust(64, b'\0'), slot = args.slot)
         return response
     except yubico.yubico_exception.YubicoError as e:
-        print "YubiKey challenge-response failed (%s)" % e.reason
-        print ""
-    response = raw_input("Assuming you do not have a YubiKey. Enter repsonse manually (hex encoded) : ")
-    return response
+        print("YubiKey challenge-response failed (%s)" % e.reason)
+        print("")
+    response = six.moves.input("Assuming you do not have a YubiKey. Enter repsonse manually (hex encoded) : ")
+    return binascii.unhexlify(response)
 
 def roll_next_challenge(args, hmac_key, inner_dict):
     """
     When we have the HMAC-SHA1 key in clear, generate a random challenge and compute the
     expected response for that challenge.
+
+    hmac_key is a 20-byte bytestring
     """
-    if len(hmac_key) != 20:
-        hmac_key = hmac_key.decode('hex')
+    if len(hmac_key) != 20 or not isinstance(hmac_key, bytes):
+        hmac_key = binascii.unhexlify(hmac_key)
 
     challenge = os.urandom(args.challenge_length)
     response = get_response(hmac_key, challenge)
 
-    print "Generated challenge : %s" % (challenge.encode('hex'))
-    print "Expected response   : %s (sssh, don't tell anyone)" % (response)
-    print ""
+    print("Generated challenge : %s" % binascii.hexlify(challenge).decode('ascii'))
+    print("Expected response   : %s (sssh, don't tell anyone)" % binascii.hexlify(response).decode('ascii'))
+    print("")
     if args.debug or args.verbose or args.init:
-        print "To manually verify that your YubiKey produces this response, use :"
-        print ""
-        print "  $ ykchalresp -%i -x %s" % (args.slot, challenge.encode('hex'))
-        print ""
+        print("To manually verify that your YubiKey produces this response, use :")
+        print("")
+        print("  $ ykchalresp -%i -x %s" % (args.slot, binascii.hexlify(challenge).decode('ascii')))
+        print("")
 
-    inner_dict["hmac_key"] = hmac_key.encode('hex')
+    inner_dict["hmac_key"] = binascii.hexlify(hmac_key).decode('ascii')
     inner_j = json.dumps(inner_dict, indent = 4)
     if args.verbose or args.debug:
-        print "Inner JSON :\n%s\n" % (inner_j)
+        print("Inner JSON :\n%s\n" % (inner_j))
     inner_ciphertext = encrypt_with_response(args, inner_j, response)
-    outer_dict = {"challenge": challenge.encode('hex'),
-                  "inner": inner_ciphertext,
+    outer_dict = {"challenge": binascii.hexlify(challenge).decode('ascii'),
+                  "inner": inner_ciphertext.decode('ascii'),
                   }
     outer_j = json.dumps(outer_dict, indent = 4)
     if args.verbose or args.debug:
-        print "\nOuter JSON :\n%s\n" % (outer_j)
+        print("\nOuter JSON :\n%s\n" % (outer_j))
 
-    print "Saving 'outer' JSON to file '%s'" % (args.filename)
+    print("Saving 'outer' JSON to file '%s'" % (args.filename))
     write_state_file(args, outer_j)
 
 def get_response(hmac_key, challenge):
-    """ Compute the expected response for `challenge'. """
+    """ Compute the expected response for `challenge', as hexadecimal string """
+    print(binascii.hexlify(hmac_key), binascii.hexlify(challenge), hashlib.sha1)
     h = hmac.new(hmac_key, challenge, hashlib.sha1)
-    return h.hexdigest()
+    return h.digest()
 
 def encrypt_with_response(args, data, key):
     """
@@ -191,14 +196,14 @@ def encrypt_with_response(args, data, key):
     data += ' ' * (16 - pad)
 
     # need to pad key as well
-    aes_key = key.decode('hex')
-    aes_key += chr(0x0) * (32 - len(aes_key))
+    aes_key = key
+    aes_key += b'\0' * (32 - len(aes_key))
     if args.debug:
-        print ("AES-CBC encrypting 'inner' with key (%i bytes) : %s" % (len(aes_key), aes_key.encode('hex')))
+        print(("AES-CBC encrypting 'inner' with key (%i bytes) : %s" % (len(aes_key), binascii.hexlify(aes_key))))
 
-    obj = AES.new(aes_key, AES.MODE_CBC)
+    obj = AES.new(aes_key, AES.MODE_CBC, b'\0' * 16)
     ciphertext = obj.encrypt(data)
-    return ciphertext.encode('hex')
+    return binascii.hexlify(ciphertext)
 
 def decrypt_with_response(args, data, key):
     """
@@ -206,17 +211,17 @@ def decrypt_with_response(args, data, key):
     """
     aes_key = key
     try:
-        aes_key = key.decode('hex')
-    except TypeError:
+        aes_key = binascii.unhexlify(key)
+    except (TypeError, binascii.Error):
         # was not hex encoded
         pass
     # need to pad key
-    aes_key += chr(0x0) * (32 - len(aes_key))
+    aes_key += b'\0' * (32 - len(aes_key))
     if args.debug:
-        print ("AES-CBC decrypting 'inner' using key (%i bytes) : %s" % (len(aes_key), aes_key.encode('hex')))
+        print(("AES-CBC decrypting 'inner' using key (%i bytes) : %s" % (len(aes_key), binascii.hexlify(aes_key))))
 
-    obj = AES.new(aes_key, AES.MODE_CBC)
-    plaintext = obj.decrypt(data.decode('hex'))
+    obj = AES.new(aes_key, AES.MODE_CBC, b'\0' * 16)
+    plaintext = obj.decrypt(binascii.unhexlify(data))
     return plaintext
 
 def write_state_file(args, data):
@@ -236,7 +241,7 @@ def main():
     else:
         do_challenge(args)
 
-    print "\nDone\n"
+    print("\nDone\n")
 
 if __name__ == '__main__':
     main()

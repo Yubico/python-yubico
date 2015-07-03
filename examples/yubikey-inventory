@@ -29,9 +29,9 @@ if len(sys.argv) > 1:
 keys = get_all_yubikeys(debug)
 
 if not keys:
-    print "No YubiKey found."
+    print("No YubiKey found.")
 else:
     n = 1
     for this in keys:
-        print "YubiKey #%02i : %s %s" % (n, this.description, this.status())
+        print("YubiKey #%02i : %s %s" % (n, this.description, this.status()))
         n += 1

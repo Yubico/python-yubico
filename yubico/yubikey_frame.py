@@ -101,24 +101,24 @@ class YubiKeyFrame:
                             yubikey_defs.SLOT_SWAP,
                             ]:
             # annotate according to config_st (see yubikey_defs.to_string())
-            if ord(data[-1]) == 0x80:
+            if yubico_util.ord_byte(data[-1]) == 0x80:
                 return (data, "FFFFFFF")
-            if ord(data[-1]) == 0x81:
+            if yubico_util.ord_byte(data[-1]) == 0x81:
                 return (data, "FFFFFFF")
-            if ord(data[-1]) == 0x82:
+            if yubico_util.ord_byte(data[-1]) == 0x82:
                 return (data, "FFUUUUU")
-            if ord(data[-1]) == 0x83:
+            if yubico_util.ord_byte(data[-1]) == 0x83:
                 return (data, "UKKKKKK")
-            if ord(data[-1]) == 0x84:
+            if yubico_util.ord_byte(data[-1]) == 0x84:
                 return (data, "KKKKKKK")
-            if ord(data[-1]) == 0x85:
+            if yubico_util.ord_byte(data[-1]) == 0x85:
                 return (data, "KKKAAAA")
-            if ord(data[-1]) == 0x86:
+            if yubico_util.ord_byte(data[-1]) == 0x86:
                 return (data, "AAlETCr")
-            if ord(data[-1]) == 0x87:
+            if yubico_util.ord_byte(data[-1]) == 0x87:
                 return (data, "rCR")
             # after payload
-            if ord(data[-1]) == 0x89:
+            if yubico_util.ord_byte(data[-1]) == 0x89:
                 return (data, " Scr")
         else:
             return (data, '')
