@@ -188,7 +188,7 @@ class YubiKeyNEO_NDEF():
         first = struct.pack(fmt,
                             len(data),
                             self.ndef_type,
-                            data.ljust(_NDEF_DATA_SIZE, chr(0x0)),
+                            data.ljust(_NDEF_DATA_SIZE, b'\0'),
                             self.access_code,
                             )
         #crc = 0xffff - yubico_util.crc16(first)
