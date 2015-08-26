@@ -27,8 +27,7 @@ setup(
     license='BSD 2 clause',
     packages=['yubico'],
     install_requires=['pyusb'],
-    tests_require=['nose>=1.0'],
-    test_suite='nose.collector',
+    test_suite='test',
     cmdclass={'release': release},
     classifiers=[
         'License :: OSI Approved :: BSD License',

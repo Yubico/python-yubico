@@ -9,4 +9,4 @@ python:
 install:
   - "pip install --pre pyusb"
 # command to run tests
-script: "nosetests --ignore-files=test_yubikey_usb_hid.py"
+script: "python setup.py -s test.soft"
