@@ -9,4 +9,4 @@ python:
 install:
   - "pip install --pre pyusb"
 # command to run tests
-script: "python setup.py -s test.soft"
+script: "python setup.py test -s test.soft"
