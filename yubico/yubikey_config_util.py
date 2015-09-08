@@ -14,7 +14,8 @@ __all__ = [
     'YubiKeyTicketFlag',
 ]
 
-class YubiKeyFlag():
+
+class YubiKeyFlag(object):
     """
     A flag value, and associated metadata.
     """
@@ -92,10 +93,12 @@ class YubiKeyFlag():
         else:
             return version >= self.min_ykver
 
+
 class YubiKeyTicketFlag(YubiKeyFlag):
     """
     A ticket flag value, and associated metadata.
     """
+
 
 class YubiKeyConfigFlag(YubiKeyFlag):
     """
@@ -107,7 +110,8 @@ class YubiKeyConfigFlag(YubiKeyFlag):
             assert()
         self.mode = mode
 
-        YubiKeyFlag.__init__(self, key, value, doc=doc, min_ykver=min_ykver, max_ykver=max_ykver)
+        super(YubiKeyConfigFlag, self).__init__(key, value, doc=doc, min_ykver=min_ykver, max_ykver=max_ykver)
+
 
 class YubiKeyExtendedFlag(YubiKeyFlag):
     """
@@ -119,9 +123,10 @@ class YubiKeyExtendedFlag(YubiKeyFlag):
             assert()
         self.mode = mode
 
-        YubiKeyFlag.__init__(self, key, value, doc=doc, min_ykver=min_ykver, max_ykver=max_ykver)
+        super(YubiKeyExtendedFlag, self).__init__(key, value, doc=doc, min_ykver=min_ykver, max_ykver=max_ykver)
 
-class YubiKeyConfigBits():
+
+class YubiKeyConfigBits(object):
     """
     Class to hold bit values for configuration.
     """

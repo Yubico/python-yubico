@@ -84,12 +84,14 @@ ExtendedFlags = [
     YubiKeyExtendedFlag('DORMANT',		0x40, min_ykver=(2, 3), doc='Dormant configuration (can be woken up and flag removed = requires update flag)'),
     ]
 
+
 class YubiKeyConfigError(yubico_exception.YubicoError):
     """
     Exception raised for YubiKey configuration errors.
     """
 
-class YubiKeyConfig():
+
+class YubiKeyConfig(object):
     """
     Base class for configuration of all current types of YubiKeys.
     """
@@ -518,6 +520,7 @@ class YubiKeyConfig():
             self.uid = new[16:]
         else:
             raise yubico_exception.InputError('HMAC key must be exactly 20 bytes')
+
 
 def _get_flag(which, flags):
     """ Find 'which' entry in 'flags'. """

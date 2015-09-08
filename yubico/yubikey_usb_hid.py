@@ -85,6 +85,7 @@ _CMD_CHALLENGE = {'HMAC': {1: _SLOT_CHAL_HMAC1, 2: _SLOT_CHAL_HMAC2},
 class YubiKeyUSBHIDError(yubico_exception.YubicoError):
     """ Exception raised for errors with the USB HID communication. """
 
+
 class YubiKeyUSBHIDCapabilities(yubikey_base.YubiKeyCapabilities):
     """
     Capture the capabilities of the various versions of YubiKeys.
@@ -93,9 +94,10 @@ class YubiKeyUSBHIDCapabilities(yubikey_base.YubiKeyCapabilities):
     in one or more versions, leaving the other ones at False through default_answer.
     """
     def __init__(self, model, version, default_answer):
-        yubikey_base.YubiKeyCapabilities.__init__(self, model = model, \
-                                                    version = version, \
-                                                    default_answer = default_answer)
+        super(YubiKeyUSBHIDCapabilities, self).__init__(
+            model=model,
+            version=version,
+            default_answer=default_answer)
 
     def have_yubico_OTP(self):
         """ Yubico OTP support has always been available in the standard YubiKey. """
@@ -136,7 +138,7 @@ class YubiKeyUSBHIDCapabilities(yubikey_base.YubiKeyCapabilities):
         return (slot in [1, 2])
 
 
-class YubiKeyHIDDevice():
+class YubiKeyHIDDevice(object):
     """
     High-level wrapper for low-level HID commands for a HID based YubiKey.
     """
@@ -439,7 +441,7 @@ class YubiKeyUSBHID(YubiKey):
             skip  -- number of YubiKeys to skip
             debug -- True or False
         """
-        YubiKey.__init__(self, debug)
+        super(YubiKeyUSBHID, self).__init__(debug)
         if hid_device is None:
             self._device = YubiKeyHIDDevice(debug, skip)
         else:
@@ -546,7 +548,7 @@ class YubiKeyUSBHID(YubiKey):
         return response[:response_len]
 
 
-class YubiKeyUSBHIDStatus():
+class YubiKeyUSBHIDStatus(object):
     """ Class to represent the status information we get from the YubiKey. """
 
     CONFIG1_VALID = 0x01 # Bit in touchLevel indicating that configuration 1 is valid (from firmware 2.1)
@@ -608,10 +610,10 @@ class YubiKeyUSBHIDStatus():
             res.append(2)
         return res
 
+
 class YubiKeyConfigUSBHID(yubikey_config.YubiKeyConfig):
     """
     Configuration class for USB HID YubiKeys.
     """
     def __init__(self, ykver, capabilities = None, **kw):
-        yubikey_config.YubiKeyConfig.__init__(self, ykver = ykver, capabilities = capabilities, **kw)
-        return None
+        super(YubiKeyConfigUSBHID, self).__init__(ykver=ykver, capabilities=capabilities, **kw)

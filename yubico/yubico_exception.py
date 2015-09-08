@@ -24,6 +24,7 @@ __all__ = [
 
 from .yubico_version import __version__
 
+
 class YubicoError(Exception):
     """
     Base class for Yubico exceptions in the yubico package.
@@ -44,9 +45,10 @@ class YubicoError(Exception):
 
     pass
 
+
 class InputError(YubicoError):
     """
     Exception raised for errors in an input to some function.
     """
     def __init__(self, reason='input validation error'):
-        YubicoError.__init__(self, reason)
+        super(InputError, self).__init__(reason)

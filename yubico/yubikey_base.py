@@ -15,7 +15,7 @@ class YubiKeyError(yubico_exception.YubicoError):
         reason -- explanation of the error
     """
     def __init__(self, reason='no details'):
-        yubico_exception.YubicoError.__init__(self, reason)
+        super(YubiKeyError, self).__init__(reason)
 
 class YubiKeyTimeout(YubiKeyError):
     """
@@ -25,7 +25,7 @@ class YubiKeyTimeout(YubiKeyError):
         reason -- explanation of the error
     """
     def __init__(self, reason='no details'):
-        YubiKeyError.__init__(self, reason)
+        super(YubiKeyTimeout, self).__init__(reason)
 
 class YubiKeyVersionError(YubiKeyError):
     """
@@ -35,10 +35,10 @@ class YubiKeyVersionError(YubiKeyError):
         reason -- explanation of the error
     """
     def __init__(self, reason='no details'):
-        YubiKeyError.__init__(self, reason)
+        super(YubiKeyVersionError, self).__init__(reason)
 
 
-class YubiKeyCapabilities():
+class YubiKeyCapabilities(object):
     """
     Class expressing the functionality of a YubiKey.
 
@@ -113,7 +113,7 @@ class YubiKeyCapabilities():
         return self.default_answer
 
 
-class YubiKey():
+class YubiKey(object):
     """
     Base class for accessing YubiKeys
     """

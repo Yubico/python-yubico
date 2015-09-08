@@ -81,6 +81,7 @@ uri_identifiers = [
 class YubiKeyNEO_USBHIDError(yubico_exception.YubicoError):
     """ Exception raised for errors with the NEO USB HID communication. """
 
+
 class YubiKeyNEO_USBHIDCapabilities(yubikey_usb_hid.YubiKeyUSBHIDCapabilities):
     """
     Capabilities of current YubiKey NEO.
@@ -123,7 +124,7 @@ class YubiKeyNEO_USBHID(yubikey_usb_hid.YubiKeyUSBHID):
             skip  -- number of YubiKeys to skip
             debug -- True or False
         """
-        yubikey_usb_hid.YubiKeyUSBHID.__init__(self, debug, skip, hid_device)
+        super(YubiKeyNEO_USBHID, self).__init__(debug, skip, hid_device)
         if self.version_num() >= (2, 1, 4,) and \
                 self.version_num() <= (2, 1, 9,):
             self.description = 'YubiKey NEO BETA'
@@ -148,7 +149,7 @@ class YubiKeyNEO_USBHID(yubikey_usb_hid.YubiKeyUSBHID):
         return self._write_config(device_config, _SLOT_DEVICE_CONFIG)
 
 
-class YubiKeyNEO_NDEF():
+class YubiKeyNEO_NDEF(object):
     """
     Class allowing programming of a YubiKey NEO NDEF.
     """
@@ -257,7 +258,7 @@ class YubiKeyNEO_NDEF():
         return yubico_util.chr_byte(status) + self.ndef_text_lang + data
 
 
-class YubiKeyNEO_DEVICE_CONFIG():
+class YubiKeyNEO_DEVICE_CONFIG(object):
     """
     Class allowing programming of a YubiKey NEO DEVICE_CONFIG.
     """
