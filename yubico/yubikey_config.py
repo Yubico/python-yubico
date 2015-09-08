@@ -95,7 +95,8 @@ class YubiKeyConfig(object):
     """
     Base class for configuration of all current types of YubiKeys.
     """
-    def __init__(self, ykver=None, capabilities=None, update=False, swap=False):
+    def __init__(self, ykver=None, capabilities=None, update=False, swap=False,
+                 zap=False):
         """
         `ykver' is a tuple (major, minor) with the version number of the key
         you are planning to apply this configuration to. Not mandated, but
@@ -111,6 +112,9 @@ class YubiKeyConfig(object):
 
         YubiKey >= 2.3 also supports swapping the configurations, making
         slot 1 be slot 2 and vice versa. Set swap=True for this.
+
+        YubiKeys support deleting a configuration, setting it in an
+        unprogrammed state. Set zap=True for this.
         """
         if capabilities is None:
             self.capabilities = yubikey_base.YubiKeyCapabilities(default_answer = True)
@@ -136,11 +140,12 @@ class YubiKeyConfig(object):
             self._require_version(major=2, minor=3)
         self._update_config = update
         self._swap_slots = swap
+        self._zap = zap
 
         return None
 
     def __repr__(self):
-        return '<%s instance at %s: mode %s, v=%s/%s, lf=%i, lu=%i, lk=%i, lac=%i, tf=%x, cf=%x, ef=%x, lu=%i, up=%s, sw=%s>' % (
+        return '<%s instance at %s: mode %s, v=%s/%s, lf=%i, lu=%i, lk=%i, lac=%i, tf=%x, cf=%x, ef=%x, lu=%i, up=%s, sw=%s, z=%s>' % (
             self.__class__.__name__,
             hex(id(self)),
             self._mode,
@@ -155,6 +160,7 @@ class YubiKeyConfig(object):
             len(self.unlock_code),
             self._update_config,
             self._swap_slots,
+            self._zap
             )
 
     def version_required(self):
@@ -468,6 +474,9 @@ class YubiKeyConfig(object):
 
         if self._swap_slots:
             command = SLOT_SWAP
+
+        if self._zap:
+            payload = b''
 
         return yubikey_frame.YubiKeyFrame(command=command, payload=payload)
 
