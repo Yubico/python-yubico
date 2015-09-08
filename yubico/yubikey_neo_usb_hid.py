@@ -24,6 +24,7 @@ from . import yubico_util
 
 # commands from ykdef.h
 _SLOT_NDEF		    = 0x08  # Write YubiKey NEO NDEF
+_SLOT_NDEF2		    = 0x09  # Write YubiKey NEO NDEF for slot 2
 _ACC_CODE_SIZE		= 6     # Size of access code to re-program device
 _NDEF_DATA_SIZE		= 54
 _SLOT_DEVICE_CONFIG = 0x11  # Write YubiKey >= 3 device config
@@ -78,6 +79,12 @@ uri_identifiers = [
     (0x23, "urn:nfc:",),
     ]
 
+_NDEF_SLOTS = {
+    1: _SLOT_NDEF,
+    2: _SLOT_NDEF2
+}
+
+
 class YubiKeyNEO_USBHIDError(yubico_exception.YubicoError):
     """ Exception raised for errors with the NEO USB HID communication. """
 
@@ -95,8 +102,10 @@ class YubiKeyNEO_USBHIDCapabilities(yubikey_usb_hid.YubiKeyUSBHIDCapabilities):
             return (slot == 1)
         return slot in [1, 2]
 
-    def have_nfc_ndef(self):
-        return True
+    def have_nfc_ndef(self, slot=1):
+        if self.version < (3, 0, 0):
+            return slot == 1
+        return slot in [1, 2]
 
     def have_device_config(self):
         return self.version >= (3, 0, 0)
@@ -129,13 +138,14 @@ class YubiKeyNEO_USBHID(yubikey_usb_hid.YubiKeyUSBHID):
                 self.version_num() <= (2, 1, 9,):
             self.description = 'YubiKey NEO BETA'
 
-    def write_ndef(self, ndef):
+    def write_ndef(self, ndef, slot=1):
         """
-
-
         Write an NDEF tag configuration to the YubiKey NEO.
         """
-        return self._write_config(ndef, _SLOT_NDEF)
+        if not self.capabilities.have_nfc_ndef(slot):
+            raise yubikey_base.YubiKeyVersionError("NDEF slot %i  unsupported in YubiKey NEO %s" % (slot, self.version()))
+
+        return self._write_config(ndef, _NDEF_SLOTS[slot])
 
     def init_device_config(self, **kwargs):
         return YubiKeyNEO_DEVICE_CONFIG(**kwargs)

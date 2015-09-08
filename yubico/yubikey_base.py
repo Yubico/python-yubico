@@ -103,7 +103,7 @@ class YubiKeyCapabilities(object):
     def have_shifted_1_mode(self):
         return self.default_answer
 
-    def have_nfc_ndef(self):
+    def have_nfc_ndef(self, slot=1):
         return self.default_answer
 
     def have_configuration_slot(self):
