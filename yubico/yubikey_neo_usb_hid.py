@@ -15,6 +15,7 @@ __all__ = [
 ]
 
 import struct
+import binascii
 
 from .yubico_version import __version__
 from . import yubikey_usb_hid
@@ -36,6 +37,7 @@ _MODE_OTP_U2F       = 0x04
 _MODE_U2F_CCID      = 0x05
 _MODE_OTP_U2F_CCID  = 0x06
 _MODE_FLAG_EJECT    = 0x80
+_SLOT_SCANMAP       = 0x12  # Write YubiKey >= 3 scancode map.
 
 # from nfcdef.h
 _NDEF_URI_TYPE		= ord('U')
@@ -147,6 +149,8 @@ class YubiKeyNEO_USBHID(yubikey_usb_hid.YubiKeyUSBHID):
         if self.version_num() >= (2, 1, 4,) and \
                 self.version_num() <= (2, 1, 9,):
             self.description = 'YubiKey NEO BETA'
+        elif self.version_num() < (3, 0, 0):
+            raise yubikey_base.YubiKeyVersionError("Incorrect version for YubiKey NEO %s" % self.version())
 
     def write_ndef(self, ndef, slot=1):
         """
@@ -167,6 +171,11 @@ class YubiKeyNEO_USBHID(yubikey_usb_hid.YubiKeyUSBHID):
         if not self.capabilities.have_usb_mode(device_config._mode):
             raise yubikey_base.YubiKeyVersionError("USB mode: %02x not supported in YubiKey NEO %s" % (device_config._mode, self.version()))
         return self._write_config(device_config, _SLOT_DEVICE_CONFIG)
+
+    def write_scan_map(self, scanmap=None):
+        if not self.capabilities.have_scanmap():
+            raise yubikey_base.YubiKeyVersionError("Scanmap not supported in YubiKey NEO %s" % self.version())
+        return self._write_config(YubiKeyNEO_SCAN_MAP(scanmap), _SLOT_SCANMAP)
 
 
 class YubiKeyNEO_NDEF(object):
@@ -327,4 +336,25 @@ class YubiKeyNEO_DEVICE_CONFIG(object):
         """
         data = self.to_string()
         payload = data.ljust(64, b'\0')
+        return yubikey_frame.YubiKeyFrame(command=slot, payload=payload)
+
+
+class YubiKeyNEO_SCAN_MAP(object):
+    """
+    Class allowing programming of a YubiKey NEO scan map.
+    """
+
+    def __init__(self, scanmap=None):
+        if scanmap:
+            if scanmap.startswith(b'h:'):
+                scanmap = binascii.unhexlify(scanmap[2:])
+            if len(scanmap) != 45:
+                raise yubico_exception.InputError('Scan map must be exactly 45 bytes')
+        self.scanmap = scanmap
+
+    def to_frame(self, slot=_SLOT_SCANMAP):
+        """
+        Return the current configuration as a YubiKeyFrame object.
+        """
+        payload = self.scanmap.ljust(64, b'\0')
         return yubikey_frame.YubiKeyFrame(command=slot, payload=payload)
