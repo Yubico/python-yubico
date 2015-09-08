@@ -35,6 +35,7 @@ _MODE_U2F           = 0x03
 _MODE_OTP_U2F       = 0x04
 _MODE_U2F_CCID      = 0x05
 _MODE_OTP_U2F_CCID  = 0x06
+_MODE_FLAG_EJECT    = 0x80
 
 # from nfcdef.h
 _NDEF_URI_TYPE		= ord('U')
@@ -107,8 +108,17 @@ class YubiKeyNEO_USBHIDCapabilities(yubikey_usb_hid.YubiKeyUSBHIDCapabilities):
             return slot == 1
         return slot in [1, 2]
 
+    def have_scanmap(self):
+        return self.version >= (3, 0, 0)
+
     def have_device_config(self):
         return self.version >= (3, 0, 0)
+
+    def have_usb_mode(self, mode):
+        if not self.have_device_config():
+            return False
+        mode &= ~_MODE_FLAG_EJECT  # Mask away eject flag
+        return mode in [0, 1, 2, 3, 4, 5, 6]
 
 
 class YubiKeyNEO_USBHID(yubikey_usb_hid.YubiKeyUSBHID):
@@ -154,8 +164,8 @@ class YubiKeyNEO_USBHID(yubikey_usb_hid.YubiKeyUSBHID):
         """
         Write a DEVICE_CONFIG to the YubiKey NEO.
         """
-        if not self.capabilities.have_device_config():
-            raise yubikey_base.YubiKeyVersionError("Device config unsupported in YubiKey NEO %s" % self.version())
+        if not self.capabilities.have_usb_mode(device_config._mode):
+            raise yubikey_base.YubiKeyVersionError("USB mode: %02x not supported in YubiKey NEO %s" % (device_config._mode, self.version()))
         return self._write_config(device_config, _SLOT_DEVICE_CONFIG)
 
 
@@ -317,4 +327,4 @@ class YubiKeyNEO_DEVICE_CONFIG(object):
         """
         data = self.to_string()
         payload = data.ljust(64, b'\0')
-        return yubikey_frame.YubiKeyFrame(command = slot, payload = payload)
+        return yubikey_frame.YubiKeyFrame(command=slot, payload=payload)

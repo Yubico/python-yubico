@@ -112,6 +112,12 @@ class YubiKeyCapabilities(object):
     def have_device_config(self):
         return self.default_answer
 
+    def have_usb_mode(self, mode):
+        return self.default_answer
+
+    def have_scanmap(self):
+        return self.default_answer
+
 
 class YubiKey(object):
     """
