@@ -297,6 +297,7 @@ class YubiKeyHIDDevice(object):
         wait_num = (timeout * 2) - 1 + 6
         resp_timeout = False    # YubiKey hasn't indicated RESP_TIMEOUT (yet)
         while not finished:
+            time.sleep(sleep)
             this = self._read()
             flags = yubico_util.ord_byte(this[7])
 
@@ -334,7 +335,6 @@ class YubiKeyHIDDevice(object):
                     else:
                         reason = 'Timed out waiting for YubiKey to set status 0x%x' % mask
                     raise yubikey_base.YubiKeyTimeout(reason)
-                time.sleep(sleep)
                 sleep = min(sleep + sleep, 0.5)
             else:
                 return this
