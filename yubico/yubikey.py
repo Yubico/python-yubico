@@ -33,7 +33,7 @@ __all__ = [
 
 from .yubico_version  import __version__
 from .yubikey_base import YubiKeyError, YubiKeyTimeout, YubiKeyVersionError, YubiKeyCapabilities, YubiKey
-from .yubikey_usb_hid import YubiKeyUSBHID, YubiKeyUSBHIDError
+from .yubikey_usb_hid import YubiKeyUSBHID, YubiKeyHIDDevice, YubiKeyUSBHIDError
 from .yubikey_neo_usb_hid import YubiKeyNEO_USBHID, YubiKeyNEO_USBHIDError
 
 def find_key(debug=False, skip=0):
@@ -48,16 +48,13 @@ def find_key(debug=False, skip=0):
         debug -- True or False
     """
     try:
-        YK = YubiKeyUSBHID(debug=debug, skip=skip)
-        if (YK.version_num() >= (2, 1, 4,)) and \
-                (YK.version_num() <= (2, 1, 9,)):
-            # YubiKey NEO BETA, re-detect
-            YK2 = YubiKeyNEO_USBHID(debug=debug, skip=skip)
-            if YK2.version_num() == YK.version_num():
-                # XXX not guaranteed to be the same one I guess
-                return YK2
-            raise YubiKeyError('Found YubiKey NEO BETA, but failed on rescan.')
-        return YK
+        hid_device = YubiKeyHIDDevice(debug, skip)
+        yk_version = hid_device.status().ykver()
+        if (2, 1, 4) <= yk_version <= (2, 1, 9):
+            return YubiKeyNEO_USBHID(debug, skip, hid_device)
+        if yk_version < (3, 0, 0):
+            return YubiKeyUSBHID(debug, skip, hid_device)
+        return YubiKeyNEO_USBHID(debug, skip, hid_device)
     except YubiKeyUSBHIDError as inst:
         if 'No USB YubiKey found' in str(inst):
             # generalize this error

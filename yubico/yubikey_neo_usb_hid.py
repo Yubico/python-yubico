@@ -23,9 +23,17 @@ from . import yubico_exception
 from . import yubico_util
 
 # commands from ykdef.h
-_SLOT_NDEF		= 0x08 # Write YubiKey NEO NDEF
-_ACC_CODE_SIZE		= 6    # Size of access code to re-program device
+_SLOT_NDEF		    = 0x08  # Write YubiKey NEO NDEF
+_ACC_CODE_SIZE		= 6     # Size of access code to re-program device
 _NDEF_DATA_SIZE		= 54
+_SLOT_DEVICE_CONFIG = 0x11  # Write YubiKey >= 3 device config
+_MODE_OTP           = 0x00
+_MODE_CCID          = 0x01
+_MODE_OTP_CCID      = 0x02
+_MODE_U2F           = 0x03
+_MODE_OTP_U2F       = 0x04
+_MODE_U2F_CCID      = 0x05
+_MODE_OTP_U2F_CCID  = 0x06
 
 # from nfcdef.h
 _NDEF_URI_TYPE		= ord('U')
@@ -75,17 +83,23 @@ class YubiKeyNEO_USBHIDError(yubico_exception.YubicoError):
 
 class YubiKeyNEO_USBHIDCapabilities(yubikey_usb_hid.YubiKeyUSBHIDCapabilities):
     """
-    Capabilities of current YubiKey NEO BETA firmwares 2.1.4 and 2.1.5.
+    Capabilities of current YubiKey NEO.
     """
 
     def have_challenge_response(self, mode):
-        return False
+        return self.version >= (3, 0, 0)
 
     def have_configuration_slot(self, slot):
-        return (slot == 1)
+        if self.version < (3, 0, 0):
+            return (slot == 1)
+        return slot in [1, 2]
 
     def have_nfc_ndef(self):
         return True
+
+    def have_device_config(self):
+        return self.version >= (3, 0, 0)
+
 
 class YubiKeyNEO_USBHID(yubikey_usb_hid.YubiKeyUSBHID):
     """
@@ -99,8 +113,9 @@ class YubiKeyNEO_USBHID(yubikey_usb_hid.YubiKeyUSBHID):
 
     model = 'YubiKey NEO'
     description = 'YubiKey NEO'
+    _capabilities_cls = YubiKeyNEO_USBHIDCapabilities
 
-    def __init__(self, debug=False, skip=0):
+    def __init__(self, debug=False, skip=0, hid_device=None):
         """
         Find and connect to a YubiKey NEO (USB HID).
 
@@ -108,7 +123,7 @@ class YubiKeyNEO_USBHID(yubikey_usb_hid.YubiKeyUSBHID):
             skip  -- number of YubiKeys to skip
             debug -- True or False
         """
-        yubikey_usb_hid.YubiKeyUSBHID.__init__(self, debug, skip)
+        yubikey_usb_hid.YubiKeyUSBHID.__init__(self, debug, skip, hid_device)
         if self.version_num() >= (2, 1, 4,) and \
                 self.version_num() <= (2, 1, 9,):
             self.description = 'YubiKey NEO BETA'
@@ -120,6 +135,18 @@ class YubiKeyNEO_USBHID(yubikey_usb_hid.YubiKeyUSBHID):
         Write an NDEF tag configuration to the YubiKey NEO.
         """
         return self._write_config(ndef, _SLOT_NDEF)
+
+    def init_device_config(self, **kwargs):
+        return YubiKeyNEO_DEVICE_CONFIG(**kwargs)
+
+    def write_device_config(self, device_config):
+        """
+        Write a DEVICE_CONFIG to the YubiKey NEO.
+        """
+        if not self.capabilities.have_device_config():
+            raise yubikey_base.YubiKeyVersionError("Device config unsupported in YubiKey NEO %s" % self.version())
+        return self._write_config(device_config, _SLOT_DEVICE_CONFIG)
+
 
 class YubiKeyNEO_NDEF():
     """
@@ -228,3 +255,55 @@ class YubiKeyNEO_NDEF():
         if self.ndef_text_enc == 'UTF16':
             status = status & 0b10000000
         return yubico_util.chr_byte(status) + self.ndef_text_lang + data
+
+
+class YubiKeyNEO_DEVICE_CONFIG():
+    """
+    Class allowing programming of a YubiKey NEO DEVICE_CONFIG.
+    """
+
+    _mode = _MODE_OTP
+    _cr_timeout = 0
+    _auto_eject_time = 0
+
+
+    def __init__(self, mode = _MODE_OTP):
+        self._mode = mode
+
+    def cr_timeout(self, timeout = 0):
+        """
+        Configure the challenge-response timeout in seconds.
+        """
+        self._cr_timeout = timeout
+        return self
+
+    def auto_eject_time(self, auto_eject_time = 0):
+        """
+        Configure the auto eject time in 10x seconds.
+        """
+        self._auto_eject_time = auto_eject_time
+        return self
+
+    def to_string(self):
+        """
+        Return the current DEVICE_CONFIG as a string (always 4 bytes).
+        """
+        fmt = '<BBH'
+        first = struct.pack(
+            fmt,
+            self._mode,
+            self._cr_timeout,
+            self._auto_eject_time
+        )
+
+        #crc = 0xffff - yubico_util.crc16(first)
+        #second = first + struct.pack('<H', crc)
+        return first
+
+    def to_frame(self, slot=_SLOT_DEVICE_CONFIG):
+        """
+        Return the current configuration as a YubiKeyFrame object.
+        """
+        data = self.to_string()
+        payload = data.ljust(64, b'\0')
+        return yubikey_frame.YubiKeyFrame(command = slot, payload = payload)

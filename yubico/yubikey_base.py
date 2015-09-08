@@ -109,6 +109,10 @@ class YubiKeyCapabilities():
     def have_configuration_slot(self):
         return self.default_answer
 
+    def have_device_config(self):
+        return self.default_answer
+
+
 class YubiKey():
     """
     Base class for accessing YubiKeys
