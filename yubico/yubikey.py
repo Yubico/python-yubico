@@ -34,7 +34,9 @@ __all__ = [
 from .yubico_version  import __version__
 from .yubikey_base import YubiKeyError, YubiKeyTimeout, YubiKeyVersionError, YubiKeyCapabilities, YubiKey
 from .yubikey_usb_hid import YubiKeyUSBHID, YubiKeyHIDDevice, YubiKeyUSBHIDError
-from .yubikey_neo_usb_hid import YubiKeyNEO_USBHID, YubiKeyNEO_USBHIDError
+from .yubikey_neo_usb_hid import YubiKeyNEO_USBHID
+from .yubikey_4_usb_hid import YubiKey4_USBHID
+
 
 def find_key(debug=False, skip=0):
     """
@@ -54,7 +56,9 @@ def find_key(debug=False, skip=0):
             return YubiKeyNEO_USBHID(debug, skip, hid_device)
         if yk_version < (3, 0, 0):
             return YubiKeyUSBHID(debug, skip, hid_device)
-        return YubiKeyNEO_USBHID(debug, skip, hid_device)
+        if yk_version < (4, 0, 0):
+            return YubiKeyNEO_USBHID(debug, skip, hid_device)
+        return YubiKey4_USBHID(debug, skip, hid_device)
     except YubiKeyUSBHIDError as inst:
         if 'No USB YubiKey found' in str(inst):
             # generalize this error
