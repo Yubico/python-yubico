@@ -18,26 +18,15 @@ import struct
 import binascii
 
 from .yubico_version import __version__
+from .ykdef import SLOT, MODE
 from . import yubikey_usb_hid
 from . import yubikey_frame
 from . import yubico_exception
 from . import yubico_util
 
 # commands from ykdef.h
-_SLOT_NDEF		    = 0x08  # Write YubiKey NEO NDEF
-_SLOT_NDEF2		    = 0x09  # Write YubiKey NEO NDEF for slot 2
 _ACC_CODE_SIZE		= 6     # Size of access code to re-program device
 _NDEF_DATA_SIZE		= 54
-_SLOT_DEVICE_CONFIG = 0x11  # Write YubiKey >= 3 device config
-_MODE_OTP           = 0x00
-_MODE_CCID          = 0x01
-_MODE_OTP_CCID      = 0x02
-_MODE_U2F           = 0x03
-_MODE_OTP_U2F       = 0x04
-_MODE_U2F_CCID      = 0x05
-_MODE_OTP_U2F_CCID  = 0x06
-_MODE_FLAG_EJECT    = 0x80
-_SLOT_SCANMAP       = 0x12  # Write YubiKey >= 3 scancode map.
 
 # from nfcdef.h
 _NDEF_URI_TYPE		= ord('U')
@@ -83,8 +72,8 @@ uri_identifiers = [
     ]
 
 _NDEF_SLOTS = {
-    1: _SLOT_NDEF,
-    2: _SLOT_NDEF2
+    1: SLOT.NDEF,
+    2: SLOT.NDEF2
 }
 
 
@@ -119,7 +108,7 @@ class YubiKeyNEO_USBHIDCapabilities(yubikey_usb_hid.YubiKeyUSBHIDCapabilities):
     def have_usb_mode(self, mode):
         if not self.have_device_config():
             return False
-        mode &= ~_MODE_FLAG_EJECT  # Mask away eject flag
+        mode &= ~MODE.FLAG_EJECT  # Mask away eject flag
         return mode in [0, 1, 2, 3, 4, 5, 6]
 
 
@@ -150,14 +139,14 @@ class YubiKeyNEO_USBHID(yubikey_usb_hid.YubiKeyUSBHID):
                 self.version_num() <= (2, 1, 9,):
             self.description = 'YubiKey NEO BETA'
         elif self.version_num() < (3, 0, 0):
-            raise yubikey_base.YubiKeyVersionError("Incorrect version for YubiKey NEO %s" % self.version())
+            raise yubikey_base.YubiKeyVersionError("Incorrect version for %s" % self)
 
     def write_ndef(self, ndef, slot=1):
         """
         Write an NDEF tag configuration to the YubiKey NEO.
         """
         if not self.capabilities.have_nfc_ndef(slot):
-            raise yubikey_base.YubiKeyVersionError("NDEF slot %i  unsupported in YubiKey NEO %s" % (slot, self.version()))
+            raise yubikey_base.YubiKeyVersionError("NDEF slot %i unsupported in %s" % (slot, self))
 
         return self._write_config(ndef, _NDEF_SLOTS[slot])
 
@@ -169,13 +158,13 @@ class YubiKeyNEO_USBHID(yubikey_usb_hid.YubiKeyUSBHID):
         Write a DEVICE_CONFIG to the YubiKey NEO.
         """
         if not self.capabilities.have_usb_mode(device_config._mode):
-            raise yubikey_base.YubiKeyVersionError("USB mode: %02x not supported in YubiKey NEO %s" % (device_config._mode, self.version()))
-        return self._write_config(device_config, _SLOT_DEVICE_CONFIG)
+            raise yubikey_base.YubiKeyVersionError("USB mode: %02x not supported for %s" % (device_config._mode, self))
+        return self._write_config(device_config, SLOT.DEVICE_CONFIG)
 
     def write_scan_map(self, scanmap=None):
         if not self.capabilities.have_scanmap():
-            raise yubikey_base.YubiKeyVersionError("Scanmap not supported in YubiKey NEO %s" % self.version())
-        return self._write_config(YubiKeyNEO_SCAN_MAP(scanmap), _SLOT_SCANMAP)
+            raise yubikey_base.YubiKeyVersionError("Scanmap not supported in %s" % self)
+        return self._write_config(YubiKeyNEO_SCAN_MAP(scanmap), SLOT.SCAN_MAP)
 
 
 class YubiKeyNEO_NDEF(object):
@@ -252,7 +241,7 @@ class YubiKeyNEO_NDEF(object):
         #second = first + struct.pack('<H', crc) + self.unlock_code
         return first
 
-    def to_frame(self, slot=_SLOT_NDEF):
+    def to_frame(self, slot=SLOT.NDEF):
         """
         Return the current configuration as a YubiKeyFrame object.
         """
@@ -292,12 +281,12 @@ class YubiKeyNEO_DEVICE_CONFIG(object):
     Class allowing programming of a YubiKey NEO DEVICE_CONFIG.
     """
 
-    _mode = _MODE_OTP
+    _mode = MODE.OTP
     _cr_timeout = 0
     _auto_eject_time = 0
 
 
-    def __init__(self, mode = _MODE_OTP):
+    def __init__(self, mode=MODE.OTP):
         self._mode = mode
 
     def cr_timeout(self, timeout = 0):
@@ -330,7 +319,7 @@ class YubiKeyNEO_DEVICE_CONFIG(object):
         #second = first + struct.pack('<H', crc)
         return first
 
-    def to_frame(self, slot=_SLOT_DEVICE_CONFIG):
+    def to_frame(self, slot=SLOT.DEVICE_CONFIG):
         """
         Return the current configuration as a YubiKeyFrame object.
         """
@@ -352,7 +341,7 @@ class YubiKeyNEO_SCAN_MAP(object):
                 raise yubico_exception.InputError('Scan map must be exactly 45 bytes')
         self.scanmap = scanmap
 
-    def to_frame(self, slot=_SLOT_SCANMAP):
+    def to_frame(self, slot=SLOT.SCAN_MAP):
         """
         Return the current configuration as a YubiKeyFrame object.
         """

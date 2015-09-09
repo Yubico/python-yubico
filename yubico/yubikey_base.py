@@ -118,6 +118,12 @@ class YubiKeyCapabilities(object):
     def have_scanmap(self):
         return self.default_answer
 
+    def have_capabilities(self):
+        return self.default_answer
+
+    def have_capability(self, capability):
+        return self.default_answer
+
 
 class YubiKey(object):
     """

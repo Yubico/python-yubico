@@ -148,3 +148,11 @@ def hotp_truncate(hmac_result, length=6):
         | (ord_byte(hmac_result[offset+2]) & 0xff) <<  8 \
         | (ord_byte(hmac_result[offset+3]) & 0xff)
     return bin_code % (10 ** length)
+
+def tlv_parse(data):
+    """ Parses a bytestring of TLV values into a dict with the tags as keys."""
+    parsed = {}
+    while data:
+        t, l, data = ord_byte(data[0]), ord_byte(data[1]), data[2:]
+        parsed[t], data = data[:l], data[l:]
+    return parsed

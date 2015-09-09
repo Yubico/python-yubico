@@ -22,6 +22,7 @@ from . import yubikey_frame
 from . import yubikey_config
 from . import yubikey_defs
 from . import yubikey_base
+from .ykdef import SLOT, YUBICO_VID, PID
 from .yubikey_base import YubiKey
 import struct
 import time
@@ -42,44 +43,10 @@ _USB_TIMEOUT_MS         = 2000
 # from ykcore_backend.h
 _FEATURE_RPT_SIZE       = 8
 _REPORT_TYPE_FEATURE    = 0x03
-# from ykdef.h
-_YUBICO_VID             = 0x1050
-_YUBIKEY_PID            = 0x0010
-_NEO_OTP_PID            = 0x0110
-_NEO_OTP_CCID_PID       = 0x0111
-_NEO_OTP_U2F_PID        = 0x0114
-_NEO_OTP_U2F_CCID_PID   = 0x0116
-
-_YK4_OTP_PID            = 0x0401
-_YK4_OTP_U2F_PID        = 0x0403
-_YK4_OTP_CCID_PID       = 0x0405
-_YK4_OTP_U2F_CCID_PID   = 0x0407
-
-_PLUS_U2F_OTP_PID       = 0x0410
-
-_YK_PIDS = [
-    _YUBIKEY_PID,
-    _NEO_OTP_PID,
-    _NEO_OTP_CCID_PID,
-    _NEO_OTP_U2F_PID,
-    _NEO_OTP_U2F_CCID_PID,
-    _YK4_OTP_PID,
-    _YK4_OTP_U2F_PID,
-    _YK4_OTP_CCID_PID,
-    _YK4_OTP_U2F_CCID_PID,
-    _PLUS_U2F_OTP_PID
-]
-
-# commands from ykdef.h
-_SLOT_DEVICE_SERIAL    = 0x10 # Device serial number
-_SLOT_CHAL_OTP1        = 0x20 # Write 6 byte challenge to slot 1, get Yubico OTP response
-_SLOT_CHAL_OTP2        = 0x28 # Write 6 byte challenge to slot 2, get Yubico OTP response
-_SLOT_CHAL_HMAC1       = 0x30 # Write 64 byte challenge to slot 1, get HMAC-SHA1 response
-_SLOT_CHAL_HMAC2       = 0x38 # Write 64 byte challenge to slot 2, get HMAC-SHA1 response
 
 # dict used to select command for mode+slot in _challenge_response
-_CMD_CHALLENGE = {'HMAC': {1: _SLOT_CHAL_HMAC1, 2: _SLOT_CHAL_HMAC2},
-                  'OTP': {1: _SLOT_CHAL_OTP1, 2: _SLOT_CHAL_OTP2},
+_CMD_CHALLENGE = {'HMAC': {1: SLOT.CHAL_HMAC1, 2: SLOT.CHAL_HMAC2},
+                  'OTP': {1: SLOT.CHAL_OTP1, 2: SLOT.CHAL_OTP2},
                   }
 
 class YubiKeyUSBHIDError(yubico_exception.YubicoError):
@@ -391,14 +358,14 @@ class YubiKeyHIDDevice(object):
             import usb.core
             import usb.legacy
             devices = [usb.legacy.Device(d) for d in usb.core.find(
-                find_all=True, idVendor=_YUBICO_VID)]
+                find_all=True, idVendor=YUBICO_VID)]
         except ImportError:
             # Using PyUsb < 1.0.
             import usb
             devices = [d for bus in usb.busses() for d in bus.devices]
         for device in devices:
-            if device.idVendor == _YUBICO_VID:
-                if device.idProduct in _YK_PIDS:
+            if device.idVendor == YUBICO_VID:
+                if device.idProduct in PID.all(otp=True):
                     if skip == 0:
                         return device
                     skip -= 1
@@ -458,6 +425,9 @@ class YubiKeyUSBHID(YubiKey):
             self.version()
             )
 
+    def __str__(self):
+        return '%s (%s)' % (self.model, self.version())
+
     def status(self):
         """
         Poll YubiKey for status.
@@ -503,7 +473,7 @@ class YubiKeyUSBHID(YubiKey):
     def _read_serial(self, may_block):
         """ Read the serial number from a YubiKey > 2.2. """
 
-        frame = yubikey_frame.YubiKeyFrame(command = _SLOT_DEVICE_SERIAL)
+        frame = yubikey_frame.YubiKeyFrame(command = SLOT.DEVICE_SERIAL)
         self._device._write(frame)
         response = self._device._read_response(may_block=may_block)
         if not yubico_util.validate_crc16(response[:6]):
