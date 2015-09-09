@@ -20,7 +20,7 @@ class YubiKeyFlag(object):
     A flag value, and associated metadata.
     """
 
-    def __init__(self, key, value, doc=None, min_ykver=(0, 0), max_ykver=None, models=['YubiKey', 'YubiKey NEO']):
+    def __init__(self, key, value, doc=None, min_ykver=(0, 0), max_ykver=None, models=['YubiKey', 'YubiKey NEO', 'YubiKey 4']):
         """
         Metadata about a ticket/config/extended flag bit.
 
