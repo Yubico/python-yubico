@@ -38,19 +38,6 @@ OTP_CHALRESP_SIZE	= 16   # Number of bytes returned for an Yubico-OTP challenge 
 UID_SIZE		= 6    # Size of secret ID field
 
 
-def command2str(num):
-    """ Turn command number into name """
-    known = {0x01: "SLOT_CONFIG",
-             0x03: "SLOT_CONFIG2",
-             0x04: "SLOT_UPDATE1",
-             0x05: "SLOT_UPDATE2",
-             0x06: "SLOT_SWAP",
-             }
-    if num in known:
-        return known[num]
-    return "0x%02x" % (num)
-
-
 class SLOT(object):
     """Slot entries"""
     CONFIG               = 0x01  # First (default / V1) configuration

@@ -24,12 +24,28 @@ from . import yubico_util
 from . import yubikey_defs
 from . import yubikey_frame
 from . import yubico_exception
-from . import yubikey_config_util
-from .yubikey_config_util import YubiKeyConfigBits, YubiKeyConfigFlag, YubiKeyExtendedFlag, YubiKeyTicketFlag
 from . import yubikey_base
+from .yubikey_config_util import YubiKeyConfigBits, YubiKeyConfigFlag, YubiKeyExtendedFlag, YubiKeyTicketFlag
+from .yubikey_defs import SLOT
 
-# these used to be defined here; import them for backwards compatibility
-from .yubikey_defs import SLOT, command2str
+
+def command2str(num):
+    """ Turn command number into name """
+    for attr in SLOT.__dict__.keys():
+        if not attr.startswith('_') and attr == attr.upper():
+            if getattr(SLOT, attr) == num:
+                return 'SLOT_%s' % attr
+
+    return "0x%02x" % (num)
+
+### BEGIN DEPRECATED
+### These are here for backwards compatibility, DO NOT USE!
+SLOT_CONFIG  = SLOT.CONFIG
+SLOT_CONFIG2 = SLOT.CONFIG2
+SLOT_UPDATE1 = SLOT.UPDATE1
+SLOT_UPDATE2 = SLOT.UPDATE2
+SLOT_SWAP    = SLOT.SWAP
+### END DEPRECATED
 
 
 TicketFlags = [

@@ -90,9 +90,9 @@ class YubiKey4_USBHID(yubikey_neo_usb_hid.YubiKeyNEO_USBHID):
             raise yubikey_base.YubiKeyVersionError(
                 "Incorrect version for YubiKey 4 %s" % self.version())
         elif self.version_num() < (4, 1, 0):
-            self.model = 'YubiKey Plus'
+            self.description = 'YubiKey Plus'
         elif self.version_num() < (4, 2, 0):
-            self.model = 'YubiKey Edge'
+            self.description = 'YubiKey Edge/Edge-n'
 
         if self.capabilities.have_capabilities():
             data = yubico_util.tlv_parse(self._read_capabilities())
