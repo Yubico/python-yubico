@@ -13,7 +13,7 @@ __all__ = [
     'YubiKey4_USBHIDError'
 ]
 
-from .ykdef import SLOT, MODE, YK4_CAPA
+from .yubikey_defs import SLOT, MODE, YK4_CAPA
 from . import yubikey_frame
 from . import yubikey_base
 from . import yubico_exception

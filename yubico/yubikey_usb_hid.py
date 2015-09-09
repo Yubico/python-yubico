@@ -22,7 +22,7 @@ from . import yubikey_frame
 from . import yubikey_config
 from . import yubikey_defs
 from . import yubikey_base
-from .ykdef import SLOT, YUBICO_VID, PID
+from .yubikey_defs import SLOT, YUBICO_VID, PID
 from .yubikey_base import YubiKey
 import struct
 import time

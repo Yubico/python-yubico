@@ -18,7 +18,7 @@ import struct
 import binascii
 
 from .yubico_version import __version__
-from .ykdef import SLOT, MODE
+from .yubikey_defs import SLOT, MODE
 from . import yubikey_usb_hid
 from . import yubikey_frame
 from . import yubico_exception

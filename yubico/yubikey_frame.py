@@ -18,6 +18,8 @@ from . import yubikey_defs
 from . import yubico_exception
 from .yubico_version import __version__
 
+from .yubikey_defs import SLOT
+
 class YubiKeyFrame:
     """
     Class containing an YKFRAME (as defined in ykdef.h).
@@ -94,12 +96,13 @@ class YubiKeyFrame:
         """
         if not debug:
             return data
-        if self.command in [yubikey_defs.SLOT_CONFIG,
-                            yubikey_defs.SLOT_CONFIG2,
-                            yubikey_defs.SLOT_UPDATE1,
-                            yubikey_defs.SLOT_UPDATE2,
-                            yubikey_defs.SLOT_SWAP,
-                            ]:
+        if self.command in [
+            SLOT.CONFIG,
+            SLOT.CONFIG2,
+            SLOT.UPDATE1,
+            SLOT.UPDATE2,
+            SLOT.SWAP,
+        ]:
             # annotate according to config_st (see yubikey_defs.to_string())
             if yubico_util.ord_byte(data[-1]) == 0x80:
                 return (data, "FFFFFFF")

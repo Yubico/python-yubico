@@ -29,7 +29,7 @@ from .yubikey_config_util import YubiKeyConfigBits, YubiKeyConfigFlag, YubiKeyEx
 from . import yubikey_base
 
 # these used to be defined here; import them for backwards compatibility
-from .yubikey_defs import SLOT_CONFIG, SLOT_CONFIG2, SLOT_UPDATE1, SLOT_UPDATE2, SLOT_SWAP, command2str
+from .yubikey_defs import SLOT, command2str
 
 
 TicketFlags = [
@@ -461,19 +461,19 @@ class YubiKeyConfig(object):
         payload = data.ljust(64, yubico_util.chr_byte(0x0))
         if slot is 1:
             if self._update_config:
-                command = SLOT_UPDATE1
+                command = SLOT.UPDATE1
             else:
-                command = SLOT_CONFIG
+                command = SLOT.CONFIG
         elif slot is 2:
             if self._update_config:
-                command = SLOT_UPDATE2
+                command = SLOT.UPDATE2
             else:
-                command = SLOT_CONFIG2
+                command = SLOT.CONFIG2
         else:
             assert()
 
         if self._swap_slots:
-            command = SLOT_SWAP
+            command = SLOT.SWAP
 
         if self._zap:
             payload = b''
