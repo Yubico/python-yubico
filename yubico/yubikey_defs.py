@@ -77,7 +77,7 @@ class MODE(object):
     @classmethod
     def all(cls, otp=False, ccid=False, u2f=False):
         """Returns a set of all USB modes, with optional filtering"""
-        modes = {
+        modes = set([
             cls.OTP,
             cls.CCID,
             cls.OTP_CCID,
@@ -85,28 +85,28 @@ class MODE(object):
             cls.OTP_U2F,
             cls.U2F_CCID,
             cls.OTP_U2F_CCID
-        }
+        ])
 
         if otp:
-            modes.difference_update({
+            modes.difference_update(set([
                 cls.CCID,
                 cls.U2F,
                 cls.U2F_CCID
-            })
+            ]))
 
         if ccid:
-            modes.difference_update({
+            modes.difference_update(set([
                 cls.OTP,
                 cls.U2F,
                 cls.OTP_U2F
-            })
+            ]))
 
         if u2f:
-            modes.difference_update({
+            modes.difference_update(set([
                 cls.OTP,
                 cls.CCID,
                 cls.OTP_CCID
-            })
+            ]))
 
         return modes
 
@@ -141,7 +141,7 @@ class PID(object):
     @classmethod
     def all(cls, otp=False, ccid=False, u2f=False):
         """Returns a set of all PIDs, with optional filtering"""
-        pids = {
+        pids = set([
             cls.YUBIKEY,
             cls.NEO_OTP,
             cls.NEO_OTP_CCID,
@@ -159,10 +159,10 @@ class PID(object):
             cls.YK4_U2F_CCID,
             cls.YK4_OTP_U2F_CCID,
             cls.PLUS_U2F_OTP
-        }
+        ])
 
         if otp:
-            pids.difference_update({
+            pids.difference_update(set([
                 cls.NEO_CCID,
                 cls.NEO_U2F,
                 cls.NEO_U2F_CCID,
@@ -170,10 +170,10 @@ class PID(object):
                 cls.YK4_U2F,
                 cls.YK4_CCID,
                 cls.YK4_U2F_CCID
-            })
+            ]))
 
         if ccid:
-            pids.difference_update({
+            pids.difference_update(set([
                 cls.YUBIKEY,
                 cls.NEO_OTP,
                 cls.NEO_U2F,
@@ -183,10 +183,10 @@ class PID(object):
                 cls.YK4_U2F,
                 cls.YK4_OTP_U2F,
                 cls.PLUS_U2F_OTP
-            })
+            ]))
 
         if u2f:
-            pids.difference_update({
+            pids.difference_update(set([
                 cls.YUBIKEY,
                 cls.NEO_OTP,
                 cls.NEO_OTP_CCID,
@@ -194,7 +194,7 @@ class PID(object):
                 cls.YK4_OTP,
                 cls.YK4_CCID,
                 cls.YK4_OTP_CCID
-            })
+            ]))
 
         return pids
 
