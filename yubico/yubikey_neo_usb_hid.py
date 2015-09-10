@@ -148,7 +148,7 @@ class YubiKeyNEO_USBHID(yubikey_usb_hid.YubiKeyUSBHID):
         if not self.capabilities.have_nfc_ndef(slot):
             raise yubikey_base.YubiKeyVersionError("NDEF slot %i unsupported in %s" % (slot, self))
 
-        return self._write_config(ndef, _NDEF_SLOTS[slot])
+        return self._device._write_config(ndef, _NDEF_SLOTS[slot])
 
     def init_device_config(self, **kwargs):
         return YubiKeyNEO_DEVICE_CONFIG(**kwargs)
@@ -159,12 +159,12 @@ class YubiKeyNEO_USBHID(yubikey_usb_hid.YubiKeyUSBHID):
         """
         if not self.capabilities.have_usb_mode(device_config._mode):
             raise yubikey_base.YubiKeyVersionError("USB mode: %02x not supported for %s" % (device_config._mode, self))
-        return self._write_config(device_config, SLOT.DEVICE_CONFIG)
+        return self._device._write_config(device_config, SLOT.DEVICE_CONFIG)
 
     def write_scan_map(self, scanmap=None):
         if not self.capabilities.have_scanmap():
             raise yubikey_base.YubiKeyVersionError("Scanmap not supported in %s" % self)
-        return self._write_config(YubiKeyNEO_SCAN_MAP(scanmap), SLOT.SCAN_MAP)
+        return self._device._write_config(YubiKeyNEO_SCAN_MAP(scanmap), SLOT.SCAN_MAP)
 
 
 class YubiKeyNEO_NDEF(object):
