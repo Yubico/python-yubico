@@ -20,6 +20,7 @@ import binascii
 from .yubico_version import __version__
 from .yubikey_defs import SLOT, MODE
 from . import yubikey_usb_hid
+from . import yubikey_base
 from . import yubikey_frame
 from . import yubico_exception
 from . import yubico_util
