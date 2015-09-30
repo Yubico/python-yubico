@@ -150,9 +150,15 @@ class YubiKeyHIDDevice(object):
         # make sure we have a fresh pgm_seq value
         self.status()
         self._debug("Programmed slot %i, sequence %i -> %i\n" % (slot, old_pgm_seq, self._status.pgm_seq))
-        if self._status.pgm_seq != old_pgm_seq + 1:
-            raise YubiKeyUSBHIDError('YubiKey programming failed (seq %i not increased (%i))' % \
-                                         (old_pgm_seq, self._status.pgm_seq))
+
+        if slot in [SLOT.CONFIG, SLOT.CONFIG2] or old_pgm_seq != 0:
+            if self._status.pgm_seq == old_pgm_seq + 1:
+                return
+        elif self._status.pgm_seq == 1:
+            return
+
+        raise YubiKeyUSBHIDError('YubiKey programming failed (seq %i not increased (%i))' % \
+                                    (old_pgm_seq, self._status.pgm_seq))
 
     def _read_response(self, may_block=False):
         """ Wait for a response to become available, and read it. """
