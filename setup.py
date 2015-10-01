@@ -8,7 +8,7 @@ VERSION_PATTERN = re.compile(r"(?m)^__version__\s*=\s*['\"](.+)['\"]$")
 
 
 def get_version():
-    """Return the current version as defined by yubico/__init__.py."""
+    """Return the current version as defined by yubico/yubico_version.py."""
 
     with open('yubico/yubico_version.py', 'r') as f:
         match = VERSION_PATTERN.search(f.read())
@@ -17,10 +17,10 @@ def get_version():
 
 setup(
     name='python-yubico',
-    version=get_version(),
     description='Python code for talking to Yubico\'s YubiKeys',
-    author='Fredrik Thulin',
-    author_email='fredrik@yubico.com',
+    version=get_version(),
+    author='Dain Nilsson',  # Original author: Fredrik Thulin
+    author_email='dain@yubico.com',
     maintainer='Yubico Open Source Maintainers',
     maintainer_email='ossmaint@yubico.com',
     url='https://github.com/Yubico/python-yubico',
