@@ -5,3 +5,4 @@ include ChangeLog
 include examples/*
 include util/*
 include doc/*
+recursive-include test *.py
