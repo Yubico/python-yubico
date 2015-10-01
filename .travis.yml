@@ -1,12 +1,24 @@
 language: python
+sudo: false
+
 python:
   - "2.6"
   - "2.7"
   - "3.2"
   - "3.3"
   - "3.4"
-# command to install dependencies
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+
+addons:
+  apt:
+    packages:
+      - libusb-1.0-0
+
 install:
-  - "pip install --pre pyusb"
-# command to run tests
+  - pip install "pip>=7.0.2" wheel
+  - pip install --pre pyusb
+
 script: "python setup.py test -s test.soft"
