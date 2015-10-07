@@ -120,6 +120,8 @@ class YubiKeyFrame:
                 return (data, "AAlETCr")
             if yubico_util.ord_byte(data[-1]) == 0x87:
                 return (data, "rCR")
+            if yubico_util.ord_byte(data[-1]) == 0x88:
+                return (data, '')
             # after payload
             if yubico_util.ord_byte(data[-1]) == 0x89:
                 return (data, " Scr")
