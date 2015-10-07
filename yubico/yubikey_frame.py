@@ -103,27 +103,32 @@ class YubiKeyFrame:
             SLOT.UPDATE2,
             SLOT.SWAP,
         ]:
-            # annotate according to config_st (see yubikey_defs.to_string())
+            # annotate according to config_st (see ykdef.h)
             if yubico_util.ord_byte(data[-1]) == 0x80:
-                return (data, "FFFFFFF")
+                return (data, "FFFFFFF")  # F = Fixed data (16 bytes)
             if yubico_util.ord_byte(data[-1]) == 0x81:
                 return (data, "FFFFFFF")
             if yubico_util.ord_byte(data[-1]) == 0x82:
-                return (data, "FFUUUUU")
+                return (data, "FFUUUUU")  # U = UID (6 bytes)
             if yubico_util.ord_byte(data[-1]) == 0x83:
-                return (data, "UKKKKKK")
+                return (data, "UKKKKKK")  # K = Key (16 bytes)
             if yubico_util.ord_byte(data[-1]) == 0x84:
                 return (data, "KKKKKKK")
             if yubico_util.ord_byte(data[-1]) == 0x85:
-                return (data, "KKKAAAA")
+                return (data, "KKKAAAA")  # A = Access code to set (6 bytes)
             if yubico_util.ord_byte(data[-1]) == 0x86:
-                return (data, "AAlETCr")
+                return (data, "AAlETCr")  # l = Length of fixed field (1 byte)
+                                          # E = extFlags (1 byte)
+                                          # T = tktFlags (1 byte)
+                                          # C = cfgFlags (1 byte)
+                                          # r = RFU (2 bytes)
             if yubico_util.ord_byte(data[-1]) == 0x87:
-                return (data, "rCR")
+                return (data, "rCRaaaa")  # CR = CRC16 checksum (2 bytes)
+                                          # a = Access code to use (6 bytes)
             if yubico_util.ord_byte(data[-1]) == 0x88:
-                return (data, '')
+                return (data, 'aa')
             # after payload
             if yubico_util.ord_byte(data[-1]) == 0x89:
                 return (data, " Scr")
-        else:
-            return (data, '')
+
+        return (data, '')
