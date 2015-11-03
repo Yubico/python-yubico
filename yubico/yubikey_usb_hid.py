@@ -154,7 +154,7 @@ class YubiKeyHIDDevice(object):
         if slot in [SLOT.CONFIG, SLOT.CONFIG2] or old_pgm_seq != 0:
             if self._status.pgm_seq == old_pgm_seq + 1:
                 return
-        elif self._status.pgm_seq == 1:
+        elif self._status.pgm_seq == 1 or self._status_pgm_seq == 0:
             return
 
         raise YubiKeyUSBHIDError('YubiKey programming failed (seq %i not increased (%i))' % \
