@@ -151,10 +151,10 @@ class YubiKeyHIDDevice(object):
         self.status()
         self._debug("Programmed slot %i, sequence %i -> %i\n" % (slot, old_pgm_seq, self._status.pgm_seq))
 
-        if slot in [SLOT.CONFIG, SLOT.CONFIG2] or old_pgm_seq != 0:
-            if self._status.pgm_seq == old_pgm_seq + 1:
-                return
-        elif self._status.pgm_seq == 1 or self._status_pgm_seq == 0:
+        cfgs = self._status.valid_configs()
+        if not cfgs and self._status.pgm_seq == 0:
+            return
+        if self._status.pgm_seq == old_pgm_seq + 1:
             return
 
         raise YubiKeyUSBHIDError('YubiKey programming failed (seq %i not increased (%i))' % \
