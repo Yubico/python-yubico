@@ -123,9 +123,8 @@ class release(Command):
 
         if not self.skip_tests:
             self.run_command('check')
-            # Nosetests calls sys.exit(status)
             try:
-                self.run_command('nosetests')
+                self.run_command('test')
             except SystemExit as e:
                 if e.code != 0:
                     raise DistutilsSetupError("There were test failures!")
