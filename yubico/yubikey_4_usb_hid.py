@@ -104,7 +104,7 @@ class YubiKey4_USBHID(yubikey_neo_usb_hid.YubiKeyNEO_USBHID):
         frame = yubikey_frame.YubiKeyFrame(command=SLOT.YK4_CAPABILITIES)
         self._device._write(frame)
         response = self._device._read_response()
-        r_len = ord(response[0])
+        r_len = yubico_util.ord_byte(response[0])
 
         # 1 byte length, 2 byte CRC.
         if not yubico_util.validate_crc16(response[:r_len+3]):
