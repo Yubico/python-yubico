@@ -71,7 +71,7 @@ is unable to output OTPs until it has been unplugged and plugged back in again.
 
 ==== On Windows
 If you use Windows, you will require a PyUSB backend. Python-yubico has been
-tested with http://libusbx.org[libusbx] and confirmed working, without the need
+tested with https://libusbx.info[libusbx] and confirmed working, without the need
 for replacing the device driver.
 
 === License
