@@ -136,7 +136,7 @@ class YubiKeyHIDDevice(object):
         try:
             if self._usb_handle:
                 self._close()
-        except IOError:
+        except (IOError, AttributeError):
             pass
 
     def _write_config(self, cfg, slot):
