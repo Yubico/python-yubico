@@ -475,12 +475,12 @@ class YubiKeyConfig(object):
         """
         data = self.to_string()
         payload = data.ljust(64, yubico_util.chr_byte(0x0))
-        if slot is 1:
+        if slot == 1:
             if self._update_config:
                 command = SLOT.UPDATE1
             else:
                 command = SLOT.CONFIG
-        elif slot is 2:
+        elif slot == 2:
             if self._update_config:
                 command = SLOT.UPDATE2
             else:

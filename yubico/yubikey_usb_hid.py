@@ -285,13 +285,13 @@ class YubiKeyHIDDevice(object):
                         seconds_left = min(20, seconds_left)
                         wait_num = (seconds_left * 2) - 1 + 6
 
-            if mode is 'nand':
+            if mode == 'nand':
                 if not flags & mask == mask:
                     finished = True
                 else:
                     self._debug("Status %s (0x%x) has not cleared bits %s (0x%x)\n"
                                 % (bin(flags), flags, bin(mask), mask))
-            elif mode is 'and':
+            elif mode == 'and':
                 if flags & mask == mask:
                     finished = True
                 else:
@@ -303,7 +303,7 @@ class YubiKeyHIDDevice(object):
             if not finished:
                 wait_num -= 1
                 if wait_num == 0:
-                    if mode is 'nand':
+                    if mode == 'nand':
                         reason = 'Timed out waiting for YubiKey to clear status 0x%x' % mask
                     else:
                         reason = 'Timed out waiting for YubiKey to set status 0x%x' % mask
