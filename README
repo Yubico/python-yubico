@@ -62,11 +62,6 @@ Or, directly from the source package in the standard Python way:
 
 This requires the `python-setuptools` package.
 
-==== On Windows
-If you use Windows, you will require a PyUSB backend. Python-yubico has been
-tested with http://libusbx.org[libusbx] and confirmed working, without the need
-for replacing the device driver.
-
 === License
 Copyright (c) Yubico AB.
 Licensed under the BSD 2-clause license.
