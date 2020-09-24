@@ -41,13 +41,10 @@ except yubico.yubico_exception.YubicoError as e:
 
 ==== Using the Ubuntu/Debian package manager
 If you use a recent Ubuntu release, you should be able to install python-yubico
-with these commands :
+using apt-get:
 
-  $ sudo add-apt-repository ppa:yubico/stable
-  $ sudo apt-get update
-  $ sudo apt-get install python-yubico
+  $ sudo apt-get install python3-yubico
 
-The Launchpad PPA key generated for our packages is 32CBA1A9.
 
 ==== Using Pip
 python-yubico is installable via pip:
