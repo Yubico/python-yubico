@@ -26,7 +26,7 @@ setup(
     url='https://github.com/Yubico/python-yubico',
     license='BSD 2 clause',
     packages=['yubico'],
-    install_requires=['pyusb'],
+    install_requires=['pyusb', 'hidapi'],
     test_suite='test',
     cmdclass={'release': release},
     classifiers=[

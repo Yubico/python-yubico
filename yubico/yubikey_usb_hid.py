@@ -43,6 +43,7 @@ _USB_TIMEOUT_MS         = 2000
 # from ykcore_backend.h
 _FEATURE_RPT_SIZE       = 8
 _REPORT_TYPE_FEATURE    = 0x03
+_REPORT_NUM             = 0
 
 # dict used to select command for mode+slot in _challenge_response
 _CMD_CHALLENGE = {'HMAC': {1: SLOT.CHAL_HMAC1, 2: SLOT.CHAL_HMAC2},
@@ -120,6 +121,7 @@ class YubiKeyHIDDevice(object):
         """
         self.debug = debug
         self._usb_handle = None
+        self._usb_hidapi = False
         if not self._open(skip):
             raise YubiKeyUSBHIDError('YubiKey USB HID initialization failed')
         self.status()
@@ -180,13 +182,17 @@ class YubiKeyHIDDevice(object):
 
     def _read(self):
         """ Read a USB HID feature report from the YubiKey. """
-        request_type = _USB_TYPE_CLASS | _USB_RECIP_INTERFACE | _USB_ENDPOINT_IN
-        value = _REPORT_TYPE_FEATURE << 8    # apparently required for YubiKey 1.3.2, but not 2.2.x
-        recv = self._usb_handle.controlMsg(request_type,
-                                          _HID_GET_REPORT,
-                                          _FEATURE_RPT_SIZE,
-                                          value = value,
-                                          timeout = _USB_TIMEOUT_MS)
+        if not self._usb_hidapi:
+            request_type = _USB_TYPE_CLASS | _USB_RECIP_INTERFACE | _USB_ENDPOINT_IN
+            value = _REPORT_TYPE_FEATURE << 8    # apparently required for YubiKey 1.3.2, but not 2.2.x
+            recv = self._usb_handle.controlMsg(request_type,
+                                              _HID_GET_REPORT,
+                                              _FEATURE_RPT_SIZE,
+                                              value = value,
+                                              timeout = _USB_TIMEOUT_MS)
+        else:
+            recv = self._usb_handle.get_feature_report(_REPORT_NUM, _FEATURE_RPT_SIZE+1)
+            recv.pop(0)
         if len(recv) != _FEATURE_RPT_SIZE:
             self._debug("Failed reading %i bytes (got %i) from USB HID YubiKey.\n"
                         % (_FEATURE_RPT_SIZE, recv))
@@ -228,13 +234,20 @@ class YubiKeyHIDDevice(object):
                 debug_str = ''
             hexdump = yubico_util.hexdump(data, colorize=True)[:-1] # strip LF
             self._debug("WRITE : %s %s\n" % (hexdump, debug_str))
-        request_type = _USB_TYPE_CLASS | _USB_RECIP_INTERFACE | _USB_ENDPOINT_OUT
-        value = _REPORT_TYPE_FEATURE << 8    # apparently required for YubiKey 1.3.2, but not 2.2.x
-        sent = self._usb_handle.controlMsg(request_type,
-                                          _HID_SET_REPORT,
-                                          data,
-                                          value = value,
-                                          timeout = _USB_TIMEOUT_MS)
+        if not self._usb_hidapi:
+            request_type = _USB_TYPE_CLASS | _USB_RECIP_INTERFACE | _USB_ENDPOINT_OUT
+            value = _REPORT_TYPE_FEATURE << 8    # apparently required for YubiKey 1.3.2, but not 2.2.x
+            sent = self._usb_handle.controlMsg(request_type,
+                                              _HID_SET_REPORT,
+                                              data,
+                                              value = value,
+                                              timeout = _USB_TIMEOUT_MS)
+        else:
+            data = bytearray(data)
+            data.insert(0, _REPORT_NUM)
+            data = bytes(data)
+            sent = self._usb_handle.send_feature_report(data)
+            sent -= 1
         if sent != _FEATURE_RPT_SIZE:
             self.debug("Failed writing %i bytes (wrote %i) to USB HID YubiKey.\n"
                        % (_FEATURE_RPT_SIZE, sent))
@@ -335,21 +348,33 @@ class YubiKeyHIDDevice(object):
             self._usb_handle.setConfiguration(1)
         except usb.USBError:
             self._debug("Unable to set configuration, ignoring...\n")
-        self._usb_handle.claimInterface(self._usb_int)
+        try:
+            self._usb_handle.claimInterface(self._usb_int)
+        except usb.core.USBError:
+            """ Attempt opening with hidapi library """
+            import hid
+            self._usb_handle = hid.device()
+            self._usb_handle.open(usb_device.idVendor, usb_device.idProduct)
+            self._usb_hidapi = True
+            
         return True
 
     def _close(self):
         """
         Release the USB interface again.
         """
-        self._usb_handle.releaseInterface()
-        try:
-            # If we're using PyUSB >= 1.0 we can re-attach the kernel driver here.
-            self._usb_handle.dev.attach_kernel_driver(0)
-        except:
-            pass
+        if not self._usb_hidapi:
+            self._usb_handle.releaseInterface()
+            try:
+                # If we're using PyUSB >= 1.0 we can re-attach the kernel driver here.
+                self._usb_handle.dev.attach_kernel_driver(0)
+            except:
+                pass
+        else:
+            self._usb_handle.close()
         self._usb_int = None
         self._usb_handle = None
+        self._usb_hidapi = False
         return True
 
     def _get_usb_device(self, skip=0):
