@@ -103,7 +103,7 @@ def make_totp(args):
             print("Serial  : %i" % YK.serial())
         print("")
     # Do challenge-response
-    secret = struct.pack("> Q", args.time / args.step).ljust(64, chr(0x0))
+    secret = struct.pack("> Q", args.time // args.step).ljust(64, chr(0x0))
     if args.debug:
         print("Sending challenge : %s\n" % (binascii.hexlify(secret)))
     response = YK.challenge_response(secret, slot=args.slot)
