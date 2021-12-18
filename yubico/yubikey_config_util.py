@@ -28,7 +28,7 @@ class YubiKeyFlag(object):
         @param value: Bit value, 0x20 for APPEND_CR
         @param doc: Human readable description of flag
         @param min_ykver: Tuple with the minimum version required (major, minor,)
-        @param min_ykver: Tuple with the maximum version required (major, minor,) (for depreacted flags)
+        @param min_ykver: Tuple with the maximum version required (major, minor,) (for deprecated flags)
         @param models: List of model identifiers (strings) that support this flag
         """
         if type(key) is not str:

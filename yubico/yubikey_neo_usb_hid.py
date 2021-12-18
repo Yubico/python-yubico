@@ -268,7 +268,7 @@ class YubiKeyNEO_NDEF(object):
 
     def _encode_ndef_text_params(self, data):
         """
-        Prepend language and enconding information to data, according to
+        Prepend language and encoding information to data, according to
         nfcforum-ts-rtd-text-1-0.pdf
         """
         status = len(self.ndef_text_lang)
