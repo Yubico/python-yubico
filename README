@@ -1,5 +1,7 @@
 == python-yubico
-Python package for talking to YubiKeys.
+Python package for managing Yubico OTP slots on YubiKeys.
+
+NOTE: This project is no longer maintained. Please refer to https://github.com/Yubico/yubikey-manager for a more fully-featured and supported Python library for interacting with YubiKeys.
 
 === Introduction
 The YubiKey is a hardware token for authentication. The main mode of the
@@ -15,7 +17,7 @@ communication:
 2. Challenge-response. YubiKey 2.2 and later supports HMAC-SHA1 or Yubico
    challenge-response operations.
    See `examples/nist_challenge_response` for an example.
-   
+
 This library makes it easy to use these two features.
 
 ===  Example
